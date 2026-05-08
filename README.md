@@ -11,7 +11,7 @@ Built for a private SMP. No external plugin dependencies required.
 | Feature | Summary |
 |---|---|
 | **XP Hearts** | Extra hearts scale with XP level. Every 5 levels = +½ heart by default. Fully configurable. |
-| **Grindstone XP Bottling** | Disenchant an item with a Glass Bottle in your inventory to receive a Bottle o' Enchanting instead of raw XP. |
+| **Grindstone XP Bottling** | Place an enchanted item in the top grindstone slot and a Glass Bottle in the bottom slot, then click the result to receive the disenchanted item plus a Bottle o' Enchanting. Shift-click a bottle into an open grindstone to auto-fill the bottom slot. |
 | **XP Multiplier Charm** | Craft a charm, charge it by killing mobs, consume it to permanently gain +1× XP from kills. Stacks up to 10×. |
 | **Rotten Flesh Smelting** | Smelt Rotten Flesh → Leather in any furnace, blast furnace, or smoker. |
 

@@ -17,7 +17,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class XPHearts extends JavaPlugin {
 
-    public static final String VERSION = "1.3.0";
+    public static final String VERSION = "1.3.1";
 
     private static XPHearts instance;
     private PlayerDataManager dataManager;
@@ -37,6 +37,7 @@ public class XPHearts extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new PlayerListener(this), this);
         Bukkit.getPluginManager().registerEvents(new GrindstoneBottling(this), this);
         Bukkit.getPluginManager().registerEvents(new CharmListener(this, charmManager, dataManager), this);
+        Bukkit.getPluginManager().registerEvents(fleshSmelting, this);
 
         getCommand("xphearts").setExecutor(new XPHeartsCommand(this));
         getCommand("xpmultiplier").setExecutor(new XPMultiplierCommand(dataManager));

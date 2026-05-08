@@ -3,6 +3,44 @@
 ================================================================================
 
 --------------------------------------------------------------------------------
+  [1.3.1] - 2026-05-08
+--------------------------------------------------------------------------------
+
+FIXED
+  - Grindstone XP Bottling: Glass Bottle now MUST be placed in the grindstone's
+    second/bottom input slot (slot 1). Inventory fallback removed entirely.
+    Placing a bottle anywhere in the player's inventory no longer triggers the
+    feature; the bottle must be physically inside the grindstone.
+
+  - Grindstone shift-click: Shift-clicking a Glass Bottle from the player's
+    inventory while a grindstone is open now automatically places it into slot 1
+    (the second/bottom input slot) if that slot is empty. It will not displace
+    an existing item or go into the wrong slot.
+
+  - PrepareGrindstoneEvent now fires a custom result when slot 0 contains an
+    enchanted item and slot 1 contains a Glass Bottle. Without this, vanilla
+    shows no result (glass bottle is not valid grindstone equipment), so the
+    result slot would remain empty and the feature could never activate.
+
+  - Rotten Flesh shift-click: Shift-clicking Rotten Flesh from the player's
+    inventory while a furnace, blast furnace, or smoker is open now moves it
+    into the furnace input slot (slot 0) directly. Vanilla does not natively
+    route Rotten Flesh via shift-click for custom recipes, so this was handled
+    with an InventoryClickEvent intercept. Fuel slot and output slot untouched.
+
+TECHNICAL
+  - GrindstoneBottling.java: removed OFFHAND_SLOT/NO_BOTTLE constants,
+    findPlayerBottleSlot(), decrementPlayerSlot(), and all player-inventory
+    fallback logic. Added PrepareGrindstoneEvent handler and separate
+    shift-click handler. stripEnchantments() added for result computation.
+  - RottenFleshSmelting.java: now implements Listener. Added
+    onShiftClickRottenFlesh() event handler.
+  - XPHearts.java: fleshSmelting registered as an event listener.
+    VERSION bumped to 1.3.1.
+  - build.gradle.kts version: 1.3.1 (jar output: XPHearts-1.3.1.jar)
+  - plugin.yml version: 1.3.1
+
+--------------------------------------------------------------------------------
   [1.3.0] - 2026-05-08
 --------------------------------------------------------------------------------
 

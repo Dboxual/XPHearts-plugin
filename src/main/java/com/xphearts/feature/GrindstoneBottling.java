@@ -6,15 +6,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.PrepareGrindstoneEvent;
 import org.bukkit.inventory.GrindstoneInventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 
-public class GrindstoneBottling implements Listener {
+import java.util.ArrayList;
 
-    private static final int OFFHAND_SLOT = -2;
-    private static final int NO_BOTTLE    = Integer.MIN_VALUE;
+public class GrindstoneBottling implements Listener {
 
     private final XPHearts plugin;
 
@@ -22,50 +21,87 @@ public class GrindstoneBottling implements Listener {
         this.plugin = plugin;
     }
 
+    // Force the grindstone to display a result when slot 0 has the enchanted item
+    // and slot 1 has a glass bottle. Without this, vanilla shows no result because
+    // a glass bottle is not valid grindstone equipment.
+    @EventHandler
+    public void onGrindstonePrepare(PrepareGrindstoneEvent event) {
+        if (!plugin.getConfig().getBoolean("grindstone-bottling.enabled", true)) return;
+
+        GrindstoneInventory grindstone = event.getInventory();
+        ItemStack slot0 = grindstone.getItem(0);
+        ItemStack slot1 = grindstone.getItem(1);
+
+        if (!isGlassBottle(slot1)) return;
+
+        if (plugin.getConfig().getBoolean("grindstone-bottling.require-dispatch-xp", true)) {
+            if (!hasEnchantments(slot0)) return;
+        } else {
+            if (slot0 == null || slot0.getType() == Material.AIR) return;
+        }
+
+        ItemStack result = slot0.clone();
+        stripEnchantments(result);
+        event.setResult(result);
+    }
+
+    // When shift-clicking a glass bottle from the player's inventory into an open
+    // grindstone, route it directly to slot 1 (second/bottom input slot).
+    @EventHandler
+    public void onShiftClickBottle(InventoryClickEvent event) {
+        if (!plugin.getConfig().getBoolean("grindstone-bottling.enabled", true)) return;
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+        if (!(event.getView().getTopInventory() instanceof GrindstoneInventory grindstone)) return;
+        if (!event.isShiftClick()) return;
+
+        // Only intercept clicks originating from the player's own inventory
+        if (event.getClickedInventory() == null || event.getClickedInventory() == grindstone) return;
+
+        ItemStack clicked = event.getCurrentItem();
+        if (!isGlassBottle(clicked)) return;
+
+        // Slot 1 must be empty; never displace an existing item
+        ItemStack slot1 = grindstone.getItem(1);
+        if (slot1 != null && slot1.getType() != Material.AIR) return;
+
+        event.setCancelled(true);
+
+        grindstone.setItem(1, new ItemStack(Material.GLASS_BOTTLE, 1));
+
+        if (clicked.getAmount() > 1) {
+            clicked.setAmount(clicked.getAmount() - 1);
+        } else {
+            event.setCurrentItem(null);
+        }
+
+        player.updateInventory();
+    }
+
+    // When the player clicks the grindstone result slot, check that a glass bottle
+    // is in slot 1. If so, consume it and give the disenchanted item + Bottle o'
+    // Enchanting. Inventory fallback is intentionally removed — bottle must be in
+    // the grindstone itself.
     @EventHandler
     public void onGrindstoneClick(InventoryClickEvent event) {
         if (!plugin.getConfig().getBoolean("grindstone-bottling.enabled", true)) return;
         if (!(event.getWhoClicked() instanceof Player player)) return;
         if (!(event.getView().getTopInventory() instanceof GrindstoneInventory grindstone)) return;
-        if (event.getRawSlot() != 2) return; // result slot only
+        if (event.getRawSlot() != 2) return;
 
         ItemStack result = grindstone.getResult();
         if (result == null || result.getType() == Material.AIR) return;
 
-        ItemStack slot0 = grindstone.getItem(0);
-        ItemStack slot1 = grindstone.getItem(1);
+        // Glass bottle must be physically in slot 1 of the grindstone
+        if (!isGlassBottle(grindstone.getItem(1))) return;
 
         if (plugin.getConfig().getBoolean("grindstone-bottling.require-dispatch-xp", true)) {
-            if (!hasEnchantments(slot0) && !hasEnchantments(slot1)) return;
-        }
-
-        // Check grindstone slots first (works if server allows bottles there),
-        // then fall back to the player's offhand and inventory
-        boolean bottleInGrindstone = false;
-        int grindstoneBottleSlot   = -1;
-        int playerBottleSlot       = NO_BOTTLE;
-
-        if (isGlassBottle(slot0) && !isGlassBottle(slot1)) {
-            bottleInGrindstone = true;
-            grindstoneBottleSlot = 0;
-        } else if (isGlassBottle(slot1) && !isGlassBottle(slot0)) {
-            bottleInGrindstone = true;
-            grindstoneBottleSlot = 1;
-        } else {
-            playerBottleSlot = findPlayerBottleSlot(player);
-            if (playerBottleSlot == NO_BOTTLE) return;
+            if (!hasEnchantments(grindstone.getItem(0))) return;
         }
 
         event.setCancelled(true);
 
-        if (bottleInGrindstone) {
-            decrementGrindstoneSlot(grindstone, grindstoneBottleSlot);
-            grindstone.setItem(grindstoneBottleSlot == 0 ? 1 : 0, null);
-        } else {
-            decrementPlayerSlot(player, playerBottleSlot);
-            grindstone.setItem(0, null);
-            grindstone.setItem(1, null);
-        }
+        decrementGrindstoneSlot(grindstone, 1);
+        grindstone.setItem(0, null);
         grindstone.setResult(null);
 
         addOrDrop(player, result.clone());
@@ -75,13 +111,12 @@ public class GrindstoneBottling implements Listener {
         player.updateInventory();
     }
 
-    private int findPlayerBottleSlot(Player player) {
-        if (isGlassBottle(player.getInventory().getItemInOffHand())) return OFFHAND_SLOT;
-        ItemStack[] contents = player.getInventory().getContents();
-        for (int i = 0; i < contents.length; i++) {
-            if (isGlassBottle(contents[i])) return i;
+    private void stripEnchantments(ItemStack item) {
+        new ArrayList<>(item.getEnchantments().keySet()).forEach(item::removeEnchantment);
+        if (item.getItemMeta() instanceof EnchantmentStorageMeta bookMeta) {
+            new ArrayList<>(bookMeta.getStoredEnchants().keySet()).forEach(bookMeta::removeStoredEnchant);
+            item.setItemMeta(bookMeta);
         }
-        return NO_BOTTLE;
     }
 
     private void decrementGrindstoneSlot(GrindstoneInventory inv, int slot) {
@@ -93,21 +128,6 @@ public class GrindstoneBottling implements Listener {
             inv.setItem(slot, copy);
         } else {
             inv.setItem(slot, null);
-        }
-    }
-
-    private void decrementPlayerSlot(Player player, int slot) {
-        PlayerInventory inv = player.getInventory();
-        ItemStack item = (slot == OFFHAND_SLOT) ? inv.getItemInOffHand() : inv.getItem(slot);
-        if (item == null) return;
-        if (item.getAmount() > 1) {
-            ItemStack copy = item.clone();
-            copy.setAmount(item.getAmount() - 1);
-            if (slot == OFFHAND_SLOT) inv.setItemInOffHand(copy);
-            else inv.setItem(slot, copy);
-        } else {
-            if (slot == OFFHAND_SLOT) inv.setItemInOffHand(null);
-            else inv.setItem(slot, null);
         }
     }
 

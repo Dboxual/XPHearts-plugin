@@ -3,12 +3,18 @@ package com.xphearts.feature;
 import com.xphearts.XPHearts;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.BlastingRecipe;
+import org.bukkit.inventory.FurnaceInventory;
 import org.bukkit.inventory.FurnaceRecipe;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.SmokingRecipe;
 
-public class RottenFleshSmelting {
+public class RottenFleshSmelting implements Listener {
 
     private final XPHearts plugin;
     private final NamespacedKey furnaceKey;
@@ -48,5 +54,48 @@ public class RottenFleshSmelting {
         plugin.getServer().removeRecipe(furnaceKey);
         plugin.getServer().removeRecipe(blastKey);
         plugin.getServer().removeRecipe(smokerKey);
+    }
+
+    // Rotten flesh is not natively recognised as a furnace ingredient by the
+    // vanilla shift-click logic, so we intercept it and move it to the input
+    // slot (slot 0) ourselves. Fuel slot and output slot are never touched.
+    @EventHandler
+    public void onShiftClickRottenFlesh(InventoryClickEvent event) {
+        if (!plugin.getConfig().getBoolean("rotten-flesh-smelting.enabled", true)) return;
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+        if (!event.isShiftClick()) return;
+
+        Inventory topInv = event.getView().getTopInventory();
+        if (!(topInv instanceof FurnaceInventory furnace)) return;
+
+        // Only handle clicks from the player's own inventory, not from inside the furnace
+        if (event.getClickedInventory() == null || event.getClickedInventory() == topInv) return;
+
+        ItemStack clicked = event.getCurrentItem();
+        if (clicked == null || clicked.getType() != Material.ROTTEN_FLESH) return;
+
+        ItemStack currentInput = furnace.getItem(0);
+
+        if (currentInput == null || currentInput.getType() == Material.AIR) {
+            event.setCancelled(true);
+            furnace.setItem(0, clicked.clone());
+            event.setCurrentItem(null);
+        } else if (currentInput.getType() == Material.ROTTEN_FLESH) {
+            int available = currentInput.getMaxStackSize() - currentInput.getAmount();
+            if (available <= 0) return;
+            event.setCancelled(true);
+            int toMove = Math.min(available, clicked.getAmount());
+            ItemStack merged = currentInput.clone();
+            merged.setAmount(currentInput.getAmount() + toMove);
+            furnace.setItem(0, merged);
+            if (clicked.getAmount() > toMove) {
+                clicked.setAmount(clicked.getAmount() - toMove);
+            } else {
+                event.setCurrentItem(null);
+            }
+        }
+        // If slot 0 holds a different item, leave it alone
+
+        player.updateInventory();
     }
 }
