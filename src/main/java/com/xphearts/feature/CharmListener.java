@@ -68,13 +68,14 @@ public class CharmListener implements Listener {
         // ── Withdraw token ────────────────────────────────────────────────
         if (charmManager.isWithdrawToken(offhand)) {
             event.setCancelled(true);
-            double maxMult  = plugin.getConfig().getDouble("multiplier.max-multiplier", 10.0);
-            double current  = dataManager.getMultiplier(player.getUniqueId());
+            double maxMult    = plugin.getConfig().getDouble("multiplier.max-multiplier", 10.0);
+            double current    = dataManager.getMultiplier(player.getUniqueId());
+            double tokenAmt   = charmManager.getTokenAmount(offhand);
             if (current >= maxMult) {
                 player.sendMessage("§cYour XP multiplier is already at the maximum (§e" + fmt(maxMult) + "x§c).");
                 return;
             }
-            double newMult = Math.min(current + 1.0, maxMult);
+            double newMult = Math.min(current + tokenAmt, maxMult);
             dataManager.setMultiplier(player.getUniqueId(), newMult);
             if (offhand.getAmount() > 1) {
                 offhand.setAmount(offhand.getAmount() - 1);
@@ -82,7 +83,7 @@ public class CharmListener implements Listener {
             } else {
                 player.getInventory().setItemInOffHand(null);
             }
-            player.sendMessage("§6❖ §bMultiplier Token applied! Your multiplier is now §e" + fmt(newMult) + "x§b.");
+            player.sendMessage("§6❖ §b+" + fmt(tokenAmt) + "x Multiplier Token applied! Your multiplier is now §e" + fmt(newMult) + "x§b.");
             return;
         }
 

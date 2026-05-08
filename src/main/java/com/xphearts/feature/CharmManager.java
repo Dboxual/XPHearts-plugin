@@ -23,12 +23,14 @@ public class CharmManager {
     private final NamespacedKey charmIdKey;
     private final NamespacedKey charmChargeKey;
     private final NamespacedKey tokenIdKey;
+    private final NamespacedKey tokenAmountKey;
 
     public CharmManager(XPHearts plugin) {
-        this.plugin       = plugin;
-        this.charmIdKey   = new NamespacedKey(plugin, "charm_id");
-        this.charmChargeKey = new NamespacedKey(plugin, "charm_charge");
-        this.tokenIdKey   = new NamespacedKey(plugin, "token_id");
+        this.plugin          = plugin;
+        this.charmIdKey      = new NamespacedKey(plugin, "charm_id");
+        this.charmChargeKey  = new NamespacedKey(plugin, "charm_charge");
+        this.tokenIdKey      = new NamespacedKey(plugin, "token_id");
+        this.tokenAmountKey  = new NamespacedKey(plugin, "token_amount");
         registerRecipe();
     }
 
@@ -100,16 +102,18 @@ public class CharmManager {
 
     // ── Withdraw Token ───────────────────────────────────────────────────────
 
-    public ItemStack createWithdrawToken() {
+    public ItemStack createWithdrawToken(double amount) {
+        String label = fmt(amount);
         ItemStack item = new ItemStack(Material.NETHER_STAR);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(c("§bMultiplier Token"));
+        meta.displayName(c("§b+" + label + "x Multiplier Token"));
         meta.lore(List.of(
-                c("§7Contains: §a+1.0x XP Multiplier"),
+                c("§7Contains: §a+" + label + "x XP Multiplier"),
                 c("§7Place in offhand and right-click to apply."),
                 c("§7Can be traded to other players.")
         ));
-        meta.getPersistentDataContainer().set(tokenIdKey, PersistentDataType.STRING, TOKEN_ID_VALUE);
+        meta.getPersistentDataContainer().set(tokenIdKey,    PersistentDataType.STRING, TOKEN_ID_VALUE);
+        meta.getPersistentDataContainer().set(tokenAmountKey, PersistentDataType.DOUBLE, amount);
         item.setItemMeta(meta);
         return item;
     }
@@ -118,6 +122,22 @@ public class CharmManager {
         if (item == null || item.getType() == Material.AIR || !item.hasItemMeta()) return false;
         String id = item.getItemMeta().getPersistentDataContainer().get(tokenIdKey, PersistentDataType.STRING);
         return TOKEN_ID_VALUE.equals(id);
+    }
+
+    /** Returns the multiplier amount stored in a token. Falls back to 1.0 for tokens created before this was added. */
+    public double getTokenAmount(ItemStack item) {
+        if (!isWithdrawToken(item)) return 0.0;
+        Double amount = item.getItemMeta().getPersistentDataContainer().get(tokenAmountKey, PersistentDataType.DOUBLE);
+        return amount != null ? amount : 1.0;
+    }
+
+    /** Reads the configured withdraw-amount (default 1.0). */
+    public double getWithdrawAmount() {
+        return plugin.getConfig().getDouble("multiplier.withdraw-amount", 1.0);
+    }
+
+    private static String fmt(double v) {
+        return v % 1 == 0 ? String.valueOf((int) v) : String.format("%.1f", v);
     }
 
     // ── Recipe ───────────────────────────────────────────────────────────────

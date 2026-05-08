@@ -27,18 +27,25 @@ public class WithdrawCommand implements CommandExecutor {
             return true;
         }
 
-        double current = dataManager.getMultiplier(player.getUniqueId());
+        double withdrawAmount = charmManager.getWithdrawAmount();
 
-        if (current < 2.0) {
-            player.sendMessage("§cYou need at least §e2.0x §cmultiplier to withdraw. "
-                    + "You currently have §e" + fmt(current) + "x§c.");
+        if (withdrawAmount <= 0) {
+            player.sendMessage("§cWithdraw amount is misconfigured (must be > 0). Contact an admin.");
             return true;
         }
 
-        double newMult = current - 1.0;
-        dataManager.setMultiplier(player.getUniqueId(), newMult);
+        double current = dataManager.getMultiplier(player.getUniqueId());
+        double remaining = current - withdrawAmount;
 
-        ItemStack token = charmManager.createWithdrawToken();
+        if (remaining < 1.0) {
+            player.sendMessage("§cYou need at least §e" + fmt(1.0 + withdrawAmount) + "x §cmultiplier to withdraw §e"
+                    + fmt(withdrawAmount) + "x§c. You currently have §e" + fmt(current) + "x§c.");
+            return true;
+        }
+
+        dataManager.setMultiplier(player.getUniqueId(), remaining);
+
+        ItemStack token = charmManager.createWithdrawToken(withdrawAmount);
         Map<Integer, ItemStack> overflow = player.getInventory().addItem(token);
 
         if (!overflow.isEmpty()) {
@@ -48,8 +55,8 @@ public class WithdrawCommand implements CommandExecutor {
             return true;
         }
 
-        player.sendMessage("§6❖ §aWithdrew §e1.0x §amultiplier. "
-                + "You now have §e" + fmt(newMult) + "x§a. "
+        player.sendMessage("§6❖ §aWithdrew §e" + fmt(withdrawAmount) + "x §amultiplier. "
+                + "You now have §e" + fmt(remaining) + "x§a. "
                 + "§7Place the token in your offhand and right-click to apply it.");
         return true;
     }

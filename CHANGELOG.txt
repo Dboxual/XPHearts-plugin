@@ -3,6 +3,36 @@
 ================================================================================
 
 --------------------------------------------------------------------------------
+  [1.3.4] - 2026-05-08
+--------------------------------------------------------------------------------
+
+CHANGED
+  - /withdraw amount is now configurable via multiplier.withdraw-amount in
+    config.yml (default: 1.0). Supports any positive decimal (0.5, 1.0, 1.5…).
+    The Multiplier Token item displays and stores the configured amount in NBT.
+    Applying the token gives exactly the amount stored in it, so tokens created
+    with different withdraw-amount settings always apply the right value.
+
+  - Minimum multiplier check updated: player must have >= (1.0 + withdraw-amount)
+    before withdrawing. Error message shows the required threshold.
+
+  - Token name and lore now reflect the actual amount ("+0.5x Multiplier Token",
+    "Contains: +0.5x XP Multiplier", etc.).
+
+TECHNICAL
+  - CharmManager: tokenAmountKey (NamespacedKey) added; createWithdrawToken()
+    now takes a double amount, stores it in PDC (PersistentDataType.DOUBLE),
+    and uses it in the display name and lore. getTokenAmount() reads the stored
+    double (falls back to 1.0 for tokens created before this version).
+    getWithdrawAmount() reads config; fmt() helper added.
+  - CharmListener: token right-click now calls getTokenAmount() instead of
+    hardcoded +1.0. Message updated to show the token's amount.
+  - WithdrawCommand: all hardcoded 1.0 / 2.0 values replaced with
+    getWithdrawAmount(); input validation added for misconfigured values.
+  - config.yml: withdraw-amount: 1.0 added under multiplier section.
+  - VERSION bumped to 1.3.4.
+
+--------------------------------------------------------------------------------
   [1.3.3] - 2026-05-08
 --------------------------------------------------------------------------------
 

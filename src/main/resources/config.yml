@@ -1,4 +1,4 @@
-# XPHearts Configuration v1.3.3
+# XPHearts Configuration v1.3.4
 
 # ─────────────────────────────────────
 # HEARTS
@@ -66,6 +66,11 @@ multiplier:
   # will be ignored for charging purposes.
   # If true, any mob kill charges the charm.
   allow-passive-mobs: false
+
+  # How much multiplier /withdraw removes and stores in the token.
+  # Supports decimals: 0.5, 1.0, 1.5, etc.
+  # Players must have at least (1.0 + withdraw-amount) to withdraw.
+  withdraw-amount: 1.0
 
   # Crafting recipe for the XP Multiplier Charm
   recipe:

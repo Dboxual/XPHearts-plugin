@@ -65,6 +65,7 @@ multiplier:
   charge-required: 100           # mob kills to fully charge a charm
   mob-kill-charge: 1             # charge gained per kill
   allow-passive-mobs: false      # true = any mob charges charm; false = hostile only
+  withdraw-amount: 1.0           # multiplier removed (and stored in token) per /withdraw
 
 # Rotten Flesh Smelting
 rotten-flesh-smelting:

@@ -18,7 +18,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class XPHearts extends JavaPlugin {
 
-    public static final String VERSION = "1.3.3";
+    public static final String VERSION = "1.3.4";
 
     private static XPHearts instance;
     private PlayerDataManager dataManager;
