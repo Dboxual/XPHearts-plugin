@@ -12,7 +12,7 @@ Built for a private SMP. No external plugin dependencies required.
 |---|---|
 | **XP Hearts** | Extra hearts scale with XP level. Every 5 levels = +½ heart by default. Fully configurable. |
 | **Grindstone XP Bottling** | Place an enchanted item in the top grindstone slot and a Glass Bottle in the bottom slot, then click the result to receive the disenchanted item plus a Bottle o' Enchanting. Shift-click a bottle into an open grindstone to auto-fill the bottom slot. |
-| **XP Multiplier Charm** | Craft a charm, charge it by killing mobs, consume it to permanently gain +1× XP from kills. Stacks up to 10×. |
+| **XP Multiplier Charm** | Craft a charm, charge it by killing hostile mobs, consume it to permanently gain +0.5× XP from kills. Stacks up to 10×. Use `/withdraw` to extract 1.0× as a tradeable token. |
 | **Rotten Flesh Smelting** | Smelt Rotten Flesh → Leather in any furnace, blast furnace, or smoker. |
 
 ---
@@ -24,8 +24,9 @@ Built for a private SMP. No external plugin dependencies required.
 | `/xphearts reload` | Reload config and update all online players | `xphearts.reload` |
 | `/xphearts check [player]` | Show level, hearts, and extra hearts | `xphearts.check` |
 | `/xpmultiplier` | View your current XP multiplier | `xphearts.check` |
-| `/xpmultiplier set <player> <n>` | Set a player's multiplier | `xphearts.admin` |
+| `/xpmultiplier set <player> <n>` | Set a player's multiplier (decimals allowed) | `xphearts.admin` |
 | `/xpmultiplier reset <player>` | Reset multiplier to 1× | `xphearts.admin` |
+| `/withdraw` | Withdraw 1.0× as a tradeable Multiplier Token (requires ≥ 2.0×) | `xphearts.withdraw` |
 
 Aliases: `/xph`, `/xpm`
 
@@ -38,6 +39,7 @@ Aliases: `/xph`, `/xpm`
 | `xphearts.reload` | op | Reload config |
 | `xphearts.check` | op | Check hearts and multiplier |
 | `xphearts.admin` | op | Manage player multipliers |
+| `xphearts.withdraw` | true | Withdraw multiplier as a token |
 
 ---
 
@@ -62,6 +64,7 @@ multiplier:
   max-multiplier: 10             # highest multiplier a player can reach
   charge-required: 100           # mob kills to fully charge a charm
   mob-kill-charge: 1             # charge gained per kill
+  allow-passive-mobs: false      # true = any mob charges charm; false = hostile only
 
 # Rotten Flesh Smelting
 rotten-flesh-smelting:

@@ -14,7 +14,7 @@ public class PlayerDataManager {
     private final XPHearts plugin;
     private final File dataFile;
     private YamlConfiguration data;
-    private final Map<UUID, Integer> cache = new HashMap<>();
+    private final Map<UUID, Double> cache = new HashMap<>();
 
     public PlayerDataManager(XPHearts plugin) {
         this.plugin = plugin;
@@ -34,7 +34,8 @@ public class PlayerDataManager {
         data = YamlConfiguration.loadConfiguration(dataFile);
         for (String key : data.getKeys(false)) {
             try {
-                cache.put(UUID.fromString(key), data.getInt(key + ".multiplier", 1));
+                // getDouble handles both legacy int values and new double values
+                cache.put(UUID.fromString(key), data.getDouble(key + ".multiplier", 1.0));
             } catch (IllegalArgumentException ignored) {}
         }
     }
@@ -48,18 +49,18 @@ public class PlayerDataManager {
         }
     }
 
-    public int getMultiplier(UUID uuid) {
-        return cache.getOrDefault(uuid, 1);
+    public double getMultiplier(UUID uuid) {
+        return cache.getOrDefault(uuid, 1.0);
     }
 
-    public void setMultiplier(UUID uuid, int value) {
-        int max = plugin.getConfig().getInt("multiplier.max-multiplier", 10);
-        cache.put(uuid, Math.max(1, Math.min(value, max)));
+    public void setMultiplier(UUID uuid, double value) {
+        double max = plugin.getConfig().getDouble("multiplier.max-multiplier", 10.0);
+        cache.put(uuid, Math.max(1.0, Math.min(value, max)));
         save();
     }
 
     public void resetMultiplier(UUID uuid) {
-        cache.put(uuid, 1);
+        cache.put(uuid, 1.0);
         save();
     }
 }

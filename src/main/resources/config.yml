@@ -1,4 +1,4 @@
-# XPHearts Configuration v1.3.0
+# XPHearts Configuration v1.3.3
 
 # ─────────────────────────────────────
 # HEARTS
@@ -60,6 +60,12 @@ multiplier:
 
   # Apply multiplier only to mob-kill XP (EntityDeathEvent)
   apply-to-mob-xp-only: true
+
+  # If false (default), only hostile mobs (zombies, skeletons, creepers, etc.)
+  # charge the XP Multiplier Charm. Passive mobs (cows, pigs, sheep, etc.)
+  # will be ignored for charging purposes.
+  # If true, any mob kill charges the charm.
+  allow-passive-mobs: false
 
   # Crafting recipe for the XP Multiplier Charm
   recipe:

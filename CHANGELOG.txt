@@ -3,6 +3,51 @@
 ================================================================================
 
 --------------------------------------------------------------------------------
+  [1.3.3] - 2026-05-08
+--------------------------------------------------------------------------------
+
+ADDED
+  - /withdraw command
+      Players with multiplier >= 2.0x can run /withdraw to extract exactly
+      1.0x as a tradeable Multiplier Token (NETHER_STAR with custom NBT).
+      The token is placed in the player's inventory. If the inventory is full,
+      the operation is rolled back and an error is shown.
+      To apply a token: hold it in offhand and right-click.
+      Permission: xphearts.withdraw (default: true — all players).
+
+  - Hostile-mob-only charm charging (allow-passive-mobs config)
+      By default, only hostile mobs (implements Monster interface: zombies,
+      skeletons, creepers, spiders, blazes, etc.) charge the XP Multiplier
+      Charm. Set allow-passive-mobs: true to allow any mob kill to charge it.
+      The XP multiplier bonus still applies to all kills regardless of this
+      setting.
+
+CHANGED
+  - Charm consume now grants +0.5x multiplier (was +1.0x).
+      Multiplier values are now stored as doubles. Existing integer values
+      in data.yml are loaded correctly via getDouble() for backward compat.
+
+  - /xpmultiplier set now accepts decimal values (e.g. set <player> 2.5).
+
+  - All multiplier displays updated to use clean formatting:
+      2.0 shows as "2x", 1.5 shows as "1.5x", etc.
+
+  - PlaceholderAPI %xphearts_multiplier% and %xphearts_multiplier_raw%
+      updated to reflect decimal multipliers.
+
+TECHNICAL
+  - PlayerDataManager: Map<UUID, Integer> → Map<UUID, Double>; getMultiplier
+    returns double; setMultiplier takes double; max read via getDouble().
+  - CharmManager: tokenIdKey added; createWithdrawToken() / isWithdrawToken()
+    added. Charm lore updated to "+0.5x".
+  - CharmListener: consume logic changed to +0.5; Monster check added for
+    charging gate; withdraw token right-click handling added.
+  - WithdrawCommand.java added (com.xphearts.command).
+  - plugin.yml: withdraw command + xphearts.withdraw permission added.
+  - config.yml: allow-passive-mobs: false added under multiplier section.
+  - VERSION bumped to 1.3.3; build.gradle.kts / plugin.yml updated to match.
+
+--------------------------------------------------------------------------------
   [1.3.2] - 2026-05-08
 --------------------------------------------------------------------------------
 

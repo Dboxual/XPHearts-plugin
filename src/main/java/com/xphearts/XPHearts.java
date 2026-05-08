@@ -1,5 +1,6 @@
 package com.xphearts;
 
+import com.xphearts.command.WithdrawCommand;
 import com.xphearts.command.XPHeartsCommand;
 import com.xphearts.command.XPMultiplierCommand;
 import com.xphearts.data.PlayerDataManager;
@@ -17,7 +18,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class XPHearts extends JavaPlugin {
 
-    public static final String VERSION = "1.3.2";
+    public static final String VERSION = "1.3.3";
 
     private static XPHearts instance;
     private PlayerDataManager dataManager;
@@ -41,6 +42,7 @@ public class XPHearts extends JavaPlugin {
 
         getCommand("xphearts").setExecutor(new XPHeartsCommand(this));
         getCommand("xpmultiplier").setExecutor(new XPMultiplierCommand(dataManager));
+        getCommand("withdraw").setExecutor(new WithdrawCommand(dataManager, charmManager));
 
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new XPHeartsExpansion(this).register();

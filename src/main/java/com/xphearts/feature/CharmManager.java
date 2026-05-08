@@ -16,22 +16,27 @@ import java.util.List;
 public class CharmManager {
 
     private static final String CHARM_ID_VALUE = "xp_multiplier_charm";
+    private static final String TOKEN_ID_VALUE  = "xp_multiplier_token";
     private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacySection();
 
     private final XPHearts plugin;
     private final NamespacedKey charmIdKey;
     private final NamespacedKey charmChargeKey;
+    private final NamespacedKey tokenIdKey;
 
     public CharmManager(XPHearts plugin) {
-        this.plugin = plugin;
-        this.charmIdKey = new NamespacedKey(plugin, "charm_id");
+        this.plugin       = plugin;
+        this.charmIdKey   = new NamespacedKey(plugin, "charm_id");
         this.charmChargeKey = new NamespacedKey(plugin, "charm_charge");
+        this.tokenIdKey   = new NamespacedKey(plugin, "token_id");
         registerRecipe();
     }
 
     private static Component c(String text) {
         return LEGACY.deserialize(text);
     }
+
+    // ── Charm ────────────────────────────────────────────────────────────────
 
     public ItemStack createCharm() {
         int required = plugin.getConfig().getInt("multiplier.charge-required", 100);
@@ -42,7 +47,7 @@ public class CharmManager {
                 c("§7Hold in offhand while killing mobs"),
                 c("§7Charge: §e0§7/§e" + required),
                 c("§7When full, right-click to consume"),
-                c("§7and gain §a+1x XP multiplier")
+                c("§7and gain §a+0.5x XP multiplier")
         ));
         meta.getPersistentDataContainer().set(charmIdKey, PersistentDataType.STRING, CHARM_ID_VALUE);
         meta.getPersistentDataContainer().set(charmChargeKey, PersistentDataType.INTEGER, 0);
@@ -74,7 +79,7 @@ public class CharmManager {
                     c("§7Hold in offhand while killing mobs"),
                     c("§6❖ Fully charged!"),
                     c("§eRight-click to consume"),
-                    c("§7and gain §a+1x XP multiplier")
+                    c("§7and gain §a+0.5x XP multiplier")
             ));
         } else {
             meta.displayName(c("§aXP Multiplier Charm"));
@@ -82,7 +87,7 @@ public class CharmManager {
                     c("§7Hold in offhand while killing mobs"),
                     c("§7Charge: §e" + charge + "§7/§e" + required),
                     c("§7When full, right-click to consume"),
-                    c("§7and gain §a+1x XP multiplier")
+                    c("§7and gain §a+0.5x XP multiplier")
             ));
         }
         item.setItemMeta(meta);
@@ -92,6 +97,30 @@ public class CharmManager {
         if (!isCharm(item)) return false;
         return getCharge(item) >= plugin.getConfig().getInt("multiplier.charge-required", 100);
     }
+
+    // ── Withdraw Token ───────────────────────────────────────────────────────
+
+    public ItemStack createWithdrawToken() {
+        ItemStack item = new ItemStack(Material.NETHER_STAR);
+        ItemMeta meta = item.getItemMeta();
+        meta.displayName(c("§bMultiplier Token"));
+        meta.lore(List.of(
+                c("§7Contains: §a+1.0x XP Multiplier"),
+                c("§7Place in offhand and right-click to apply."),
+                c("§7Can be traded to other players.")
+        ));
+        meta.getPersistentDataContainer().set(tokenIdKey, PersistentDataType.STRING, TOKEN_ID_VALUE);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    public boolean isWithdrawToken(ItemStack item) {
+        if (item == null || item.getType() == Material.AIR || !item.hasItemMeta()) return false;
+        String id = item.getItemMeta().getPersistentDataContainer().get(tokenIdKey, PersistentDataType.STRING);
+        return TOKEN_ID_VALUE.equals(id);
+    }
+
+    // ── Recipe ───────────────────────────────────────────────────────────────
 
     private void registerRecipe() {
         if (!plugin.getConfig().getBoolean("multiplier.recipe.enabled", true)) return;

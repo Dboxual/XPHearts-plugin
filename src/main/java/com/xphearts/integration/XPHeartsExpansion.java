@@ -23,11 +23,11 @@ public class XPHeartsExpansion extends PlaceholderExpansion {
     public String onRequest(OfflinePlayer offlinePlayer, @NotNull String params) {
         if (offlinePlayer == null) return "";
 
-        int multiplier = plugin.getDataManager().getMultiplier(offlinePlayer.getUniqueId());
+        double multiplier = plugin.getDataManager().getMultiplier(offlinePlayer.getUniqueId());
 
         return switch (params.toLowerCase()) {
-            case "multiplier"     -> multiplier + "x";
-            case "multiplier_raw" -> String.valueOf(multiplier);
+            case "multiplier"     -> fmt(multiplier) + "x";
+            case "multiplier_raw" -> fmt(multiplier);
             case "hearts" -> {
                 if (!(offlinePlayer instanceof Player p)) yield "?";
                 yield formatHearts(plugin.calculateMaxHealth(p.getLevel()) / 2.0);
@@ -42,7 +42,11 @@ public class XPHeartsExpansion extends PlaceholderExpansion {
         };
     }
 
-    // Renders whole numbers without a trailing ".0" (e.g. 12.0 → "12", 12.5 → "12.5")
+    // Renders whole numbers without a trailing ".0" (e.g. 2.0 → "2", 1.5 → "1.5")
+    private static String fmt(double v) {
+        return v % 1 == 0 ? String.valueOf((int) v) : String.format("%.1f", v);
+    }
+
     private static String formatHearts(double val) {
         return (val == Math.floor(val)) ? String.valueOf((int) val) : String.valueOf(val);
     }
