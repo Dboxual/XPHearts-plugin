@@ -1,0 +1,30 @@
+name: XPHearts
+version: 1.3.0
+description: Extra hearts by XP level, grindstone XP bottling, XP multiplier charms, and rotten flesh smelting
+author: LevelsSMP
+main: com.xphearts.XPHearts
+api-version: "1.21"
+softdepend: [PlaceholderAPI]
+
+commands:
+  xphearts:
+    description: XPHearts plugin commands
+    usage: /xphearts <reload|check [player]>
+    aliases: [xph]
+    permission: xphearts.check
+  xpmultiplier:
+    description: View or manage XP multipliers
+    usage: /xpmultiplier [set <player> <amount>|reset <player>]
+    aliases: [xpm]
+    permission: xphearts.check
+
+permissions:
+  xphearts.reload:
+    description: Reload the plugin and refresh all online players
+    default: op
+  xphearts.check:
+    description: Check heart count and XP multiplier
+    default: op
+  xphearts.admin:
+    description: Set or reset XP multipliers for other players
+    default: op

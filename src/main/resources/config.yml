@@ -1,0 +1,93 @@
+# XPHearts Configuration v1.3.0
+
+# ─────────────────────────────────────
+# HEARTS
+# ─────────────────────────────────────
+
+# Allow half-heart increments (+0.5 hearts per step).
+# true  = default — 10.5 / 11.0 / 11.5 / 12.0 hearts, etc.
+# false = full hearts only — 11 / 12 / 13 hearts, no halves.
+half-hearts-enabled: true
+
+# Levels required to gain half a heart (+1 HP)
+# Level 5 = 10.5 hearts | Level 10 = 11 hearts | Level 15 = 11.5 hearts
+levels-per-half-heart: 5
+
+# Starting hearts for all players (default Minecraft = 10)
+base-hearts: 10
+
+# Maximum hearts a player can ever reach
+max-hearts: 20
+
+
+# ─────────────────────────────────────
+# GRINDSTONE XP BOTTLING
+# ─────────────────────────────────────
+# How to use:
+#   1. Use a grindstone to disenchant an item.
+#   2. Have a Glass Bottle in your offhand or inventory.
+#   3. Click the result — the bottle is consumed and you receive
+#      a Bottle o' Enchanting instead of XP orbs.
+
+grindstone-bottling:
+  enabled: true
+
+  # Number of Bottles o' Enchanting given per grindstone use
+  bottles-per-dispatch: 1
+
+  # Only trigger if the item actually has enchantments to remove
+  require-dispatch-xp: true
+
+
+# ─────────────────────────────────────
+# XP MULTIPLIER CHARM
+# ─────────────────────────────────────
+# Craft an XP Multiplier Charm, hold it in your offhand while killing mobs
+# to charge it. When fully charged, right-click to consume it and gain +1x
+# XP multiplier permanently. Multiplier applies to mob-kill XP drops.
+
+multiplier:
+  enabled: true
+
+  # Hard cap on how high a player's multiplier can go
+  max-multiplier: 10
+
+  # Number of mob kills required to fully charge one charm
+  charge-required: 100
+
+  # Charge gained per mob kill
+  mob-kill-charge: 1
+
+  # Apply multiplier only to mob-kill XP (EntityDeathEvent)
+  apply-to-mob-xp-only: true
+
+  # Crafting recipe for the XP Multiplier Charm
+  recipe:
+    enabled: true
+
+    # 3-row crafting grid (use a space for empty cells)
+    shape:
+      - "AGA"
+      - "GEG"
+      - "AGA"
+
+    # Map each letter above to a Bukkit Material name
+    ingredients:
+      A: AMETHYST_SHARD
+      G: GOLD_INGOT
+      E: EXPERIENCE_BOTTLE
+
+
+# ─────────────────────────────────────
+# ROTTEN FLESH SMELTING
+# ─────────────────────────────────────
+# Smelt Rotten Flesh into Leather using a furnace, blast furnace, or smoker.
+
+rotten-flesh-smelting:
+  enabled: true
+
+  # Ticks to smelt one item in a standard furnace (20 ticks = 1 second)
+  cooking-time: 200
+
+  # XP rewarded to the player when smelting completes
+  experience: 0.1

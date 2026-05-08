@@ -1,0 +1,213 @@
+================================================================================
+  XPHearts Plugin - Feature Reference
+  Version: 1.3.0 | Paper 1.21.11 | Java 21
+================================================================================
+
+
+--------------------------------------------------------------------------------
+  FEATURE 1: XP HEARTS
+--------------------------------------------------------------------------------
+
+Players automatically gain extra hearts as their XP level increases.
+
+  Default scaling (half-hearts-enabled: true):
+    Level   0-4   =  10.0 hearts  (base)
+    Level   5-9   =  10.5 hearts
+    Level  10-14  =  11.0 hearts
+    Level  15-19  =  11.5 hearts
+    Level  20-24  =  12.0 hearts
+    Level  50-54  =  15.0 hearts
+    Level  95-99  =  19.5 hearts
+    Level 100+    =  20.0 hearts  (cap)
+
+  Full-hearts-only mode (half-hearts-enabled: false):
+    Level   0-9   =  10 hearts
+    Level  10-19  =  11 hearts
+    Level  20-29  =  12 hearts
+    Level  30-39  =  13 hearts
+    Level 100+    =  20 hearts  (cap)
+
+  Updates when:
+    - Player joins
+    - Player's XP level changes
+    - Player respawns
+    - Admin runs /xphearts reload
+
+  Config keys:
+    half-hearts-enabled: true     Enable or disable half-heart steps
+    levels-per-half-heart: 5      Levels needed per +0.5 heart
+    base-hearts: 10               Default starting hearts
+    max-hearts: 20                Maximum cap
+
+
+--------------------------------------------------------------------------------
+  FEATURE 2: GRINDSTONE XP BOTTLING
+--------------------------------------------------------------------------------
+
+Convert grindstone disenchanting XP into a Bottle o' Enchanting.
+
+  How to use:
+    1. Open a grindstone.
+    2. Place an enchanted item in a grindstone input slot.
+    3. Have a Glass Bottle in your offhand or inventory.
+       (If your server allows it: placing the bottle directly in the second
+        grindstone input slot also works.)
+    4. Click the result slot to take the disenchanted item.
+    5. One Glass Bottle is consumed and you receive a Bottle o' Enchanting.
+       The disenchanted item is given normally.
+
+  Rules:
+    - Only activates if the item has enchantments (when require-dispatch-xp: true).
+    - Supports enchanted books (stored enchants are detected).
+    - If inventory is full, outputs drop at your feet.
+    - No XP orbs are spawned when the bottle is given.
+    - Prevents item/bottle/XP duplication.
+
+  Config keys (under grindstone-bottling):
+    enabled: true
+    bottles-per-dispatch: 1         Bottles given per use
+    require-dispatch-xp: true       Only activate on enchanted items
+
+
+--------------------------------------------------------------------------------
+  FEATURE 3: XP MULTIPLIER CHARM
+--------------------------------------------------------------------------------
+
+A craftable item that permanently increases XP gained from mob kills.
+
+  CRAFTING RECIPE (default):
+    [ Amethyst ] [ Gold Ingot ] [ Amethyst ]
+    [ Gold Ingot ] [ Exp Bottle ] [ Gold Ingot ]
+    [ Amethyst ] [ Gold Ingot ] [ Amethyst ]
+    (Fully configurable in config.yml under multiplier.recipe)
+
+  CHARGING:
+    1. Hold the XP Multiplier Charm in your offhand.
+    2. Kill mobs. Each kill adds charge (default: +1 per kill).
+    3. Charm lore updates live: "Charge: 47/100"
+    4. At full charge, lore shows: "FULLY CHARGED"
+
+  CONSUMING:
+    1. Hold the fully charged charm in your offhand.
+    2. Right-click.
+    3. The charm is consumed. Your XP multiplier increases by +1x.
+
+  MULTIPLIER EFFECT:
+    - Starts at 1x (no effect).
+    - Each charm consumed adds +1x (1x -> 2x -> 3x -> ... up to max).
+    - Applies to XP dropped by mob kills.
+    - Saved permanently per player in plugins/XPHearts/data.yml.
+
+  ANTI-ABUSE:
+    - Item identity stored via PersistentDataContainer (renaming won't work).
+    - Max stack size = 1 (charms cannot stack).
+    - Charge stored on the item itself (persists in chests/ground/inventory).
+
+  Config keys (under multiplier):
+    enabled: true
+    max-multiplier: 10              Hard cap
+    charge-required: 100            Kills to fully charge
+    mob-kill-charge: 1              Charge per kill
+    apply-to-mob-xp-only: true      Only affects mob kill XP
+    recipe.enabled: true            Register the crafting recipe
+    recipe.shape                    3x3 grid layout
+    recipe.ingredients              Letter-to-material mapping
+
+
+--------------------------------------------------------------------------------
+  FEATURE 4: ROTTEN FLESH SMELTING
+--------------------------------------------------------------------------------
+
+Smelt Rotten Flesh into Leather.
+
+  Supported furnace types:
+    - Furnace             (cooking-time ticks, default 200 = 10 seconds)
+    - Blast Furnace       (half the cooking time)
+    - Smoker              (half the cooking time; rotten flesh is food)
+
+  Config keys (under rotten-flesh-smelting):
+    enabled: true
+    cooking-time: 200               Ticks in a standard furnace
+    experience: 0.1                 XP awarded when smelting completes
+
+  Reload behavior:
+    - Recipe unregisters and re-registers on /xphearts reload.
+    - Setting enabled: false and reloading removes the recipe immediately.
+
+
+--------------------------------------------------------------------------------
+  COMMANDS
+--------------------------------------------------------------------------------
+
+  /xphearts reload
+    Reloads config.yml. Applies all changes instantly:
+      - Updates heart scaling for all online players
+      - Re-registers or removes smelting recipes
+    Permission: xphearts.reload (default: op)
+
+  /xphearts check [player]
+    Shows a player's current level, heart count, and extra hearts.
+    No player argument = checks the command sender.
+    Permission: xphearts.check (default: op) | Alias: /xph
+
+  /xpmultiplier
+    Shows your current XP multiplier.
+    Permission: xphearts.check (default: op) | Alias: /xpm
+
+  /xpmultiplier set <player> <amount>
+    Sets a player's XP multiplier to the given value.
+    Permission: xphearts.admin (default: op)
+
+  /xpmultiplier reset <player>
+    Resets a player's XP multiplier to 1x.
+    Permission: xphearts.admin (default: op)
+
+
+--------------------------------------------------------------------------------
+  PLACEHOLDERAPI PLACEHOLDERS (optional)
+--------------------------------------------------------------------------------
+
+  Requires PlaceholderAPI to be installed. Plugin works without it.
+
+  %xphearts_multiplier%        "3x"    player's multiplier with label
+  %xphearts_multiplier_raw%    "3"     multiplier as a plain number
+  %xphearts_hearts%            "12.5"  current max hearts (online players only)
+  %xphearts_extra_hearts%      "+2.5"  extra hearts above base (online only)
+
+  Use in any PAPI-compatible plugin: scoreboards, tablist, chat, holograms.
+
+
+--------------------------------------------------------------------------------
+  PERMISSIONS
+--------------------------------------------------------------------------------
+
+  xphearts.reload     Reload config and refresh all players     default: op
+  xphearts.check      Use /xphearts check and /xpmultiplier     default: op
+  xphearts.admin      Use /xpmultiplier set and reset           default: op
+
+
+--------------------------------------------------------------------------------
+  DATA FILES
+--------------------------------------------------------------------------------
+
+  plugins/XPHearts/config.yml
+    All plugin settings. Edit then run /xphearts reload.
+
+  plugins/XPHearts/data.yml
+    Per-player XP multipliers, keyed by UUID.
+    Written immediately on every change and on server shutdown.
+
+  Charm state (charge) is stored on the item via PersistentDataContainer.
+  It persists wherever the item goes: inventory, chests, ground.
+
+
+--------------------------------------------------------------------------------
+  COMPATIBILITY
+--------------------------------------------------------------------------------
+
+  - Paper 1.21.11, Java 21
+  - Geyser/Bedrock compatible — no special config needed
+  - PlaceholderAPI: soft-depend (optional)
+  - No other plugin dependencies
+
+================================================================================

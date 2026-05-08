@@ -1,0 +1,126 @@
+package com.xphearts.feature;
+
+import com.xphearts.XPHearts;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
+
+import java.util.List;
+
+public class CharmManager {
+
+    private static final String CHARM_ID_VALUE = "xp_multiplier_charm";
+    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacySection();
+
+    private final XPHearts plugin;
+    private final NamespacedKey charmIdKey;
+    private final NamespacedKey charmChargeKey;
+
+    public CharmManager(XPHearts plugin) {
+        this.plugin = plugin;
+        this.charmIdKey = new NamespacedKey(plugin, "charm_id");
+        this.charmChargeKey = new NamespacedKey(plugin, "charm_charge");
+        registerRecipe();
+    }
+
+    private static Component c(String text) {
+        return LEGACY.deserialize(text);
+    }
+
+    public ItemStack createCharm() {
+        int required = plugin.getConfig().getInt("multiplier.charge-required", 100);
+        ItemStack item = new ItemStack(Material.EMERALD);
+        ItemMeta meta = item.getItemMeta();
+        meta.displayName(c("§aXP Multiplier Charm"));
+        meta.lore(List.of(
+                c("§7Hold in offhand while killing mobs"),
+                c("§7Charge: §e0§7/§e" + required),
+                c("§7When full, right-click to consume"),
+                c("§7and gain §a+1x XP multiplier")
+        ));
+        meta.getPersistentDataContainer().set(charmIdKey, PersistentDataType.STRING, CHARM_ID_VALUE);
+        meta.getPersistentDataContainer().set(charmChargeKey, PersistentDataType.INTEGER, 0);
+        meta.setMaxStackSize(1);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    public boolean isCharm(ItemStack item) {
+        if (item == null || item.getType() == Material.AIR || !item.hasItemMeta()) return false;
+        String id = item.getItemMeta().getPersistentDataContainer().get(charmIdKey, PersistentDataType.STRING);
+        return CHARM_ID_VALUE.equals(id);
+    }
+
+    public int getCharge(ItemStack item) {
+        if (!isCharm(item)) return 0;
+        Integer charge = item.getItemMeta().getPersistentDataContainer().get(charmChargeKey, PersistentDataType.INTEGER);
+        return charge != null ? charge : 0;
+    }
+
+    public void setCharge(ItemStack item, int charge) {
+        if (!isCharm(item)) return;
+        int required = plugin.getConfig().getInt("multiplier.charge-required", 100);
+        ItemMeta meta = item.getItemMeta();
+        meta.getPersistentDataContainer().set(charmChargeKey, PersistentDataType.INTEGER, charge);
+        if (charge >= required) {
+            meta.displayName(c("§aXP Multiplier Charm §6❖ FULLY CHARGED"));
+            meta.lore(List.of(
+                    c("§7Hold in offhand while killing mobs"),
+                    c("§6❖ Fully charged!"),
+                    c("§eRight-click to consume"),
+                    c("§7and gain §a+1x XP multiplier")
+            ));
+        } else {
+            meta.displayName(c("§aXP Multiplier Charm"));
+            meta.lore(List.of(
+                    c("§7Hold in offhand while killing mobs"),
+                    c("§7Charge: §e" + charge + "§7/§e" + required),
+                    c("§7When full, right-click to consume"),
+                    c("§7and gain §a+1x XP multiplier")
+            ));
+        }
+        item.setItemMeta(meta);
+    }
+
+    public boolean isFullyCharged(ItemStack item) {
+        if (!isCharm(item)) return false;
+        return getCharge(item) >= plugin.getConfig().getInt("multiplier.charge-required", 100);
+    }
+
+    private void registerRecipe() {
+        if (!plugin.getConfig().getBoolean("multiplier.recipe.enabled", true)) return;
+
+        NamespacedKey key = new NamespacedKey(plugin, "xp_multiplier_charm");
+        ShapedRecipe recipe = new ShapedRecipe(key, createCharm());
+
+        List<String> shapeList = plugin.getConfig().getStringList("multiplier.recipe.shape");
+        String[] shape = (shapeList.size() == 3)
+                ? shapeList.toArray(new String[0])
+                : new String[]{"AGA", "GEG", "AGA"};
+        recipe.shape(shape);
+
+        ConfigurationSection ingr = plugin.getConfig().getConfigurationSection("multiplier.recipe.ingredients");
+        if (ingr != null) {
+            for (String charKey : ingr.getKeys(false)) {
+                String matName = ingr.getString(charKey, "");
+                try {
+                    recipe.setIngredient(charKey.charAt(0), Material.valueOf(matName.toUpperCase()));
+                } catch (IllegalArgumentException e) {
+                    plugin.getLogger().warning("Unknown material in charm recipe config: " + matName);
+                }
+            }
+        } else {
+            recipe.setIngredient('A', Material.AMETHYST_SHARD);
+            recipe.setIngredient('G', Material.GOLD_INGOT);
+            recipe.setIngredient('E', Material.EXPERIENCE_BOTTLE);
+        }
+
+        plugin.getServer().addRecipe(recipe);
+    }
+}

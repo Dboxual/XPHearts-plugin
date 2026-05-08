@@ -1,0 +1,109 @@
+================================================================================
+  XPHearts Plugin - Changelog
+================================================================================
+
+--------------------------------------------------------------------------------
+  [1.3.0] - 2026-05-08
+--------------------------------------------------------------------------------
+
+ADDED
+  - Half-heart toggle (half-hearts-enabled in config)
+      Setting to false forces health gains to round down to full hearts only.
+      Example with false: level 5 = 10 hearts, level 10 = 11 hearts (no 10.5).
+      Example with true (default): level 5 = 10.5 hearts (original behavior).
+
+  - Rotten Flesh Smelting feature
+      Smelt Rotten Flesh into Leather in a furnace, blast furnace, or smoker.
+      Configurable cooking time (default: 200 ticks) and XP reward (default: 0.1).
+      Recipe only registers when enabled. Safe to toggle via reload.
+
+CHANGED
+  - /xphearts reload now calls reloadFeatures() which handles:
+        config reload, smelting recipe re-registration, and health update for
+        all online players — all in one command.
+
+  - /xphearts check now shows max hearts from config rather than hardcoded 20.
+
+  - XPHearts.VERSION constant added (was an inline string).
+      PlaceholderAPI expansion now uses this constant instead of a stale literal.
+
+FIXED
+  - Grindstone XP Bottling completely rewritten.
+      Root cause: vanilla may prevent placing glass bottles in grindstone input
+      slots. New logic checks grindstone slots first, then falls back to the
+      player's offhand and full inventory automatically.
+      Slot interactions now use getItem()/setItem() directly instead of the
+      named accessor methods which had inconsistent behavior in Paper 1.21.
+      Shift-click handled correctly via event.getRawSlot() check.
+      Leftover bottles returned to player if stack > 1 was in a grindstone slot.
+      Inventory-full case safely drops all overflow items at the player's feet.
+
+TECHNICAL
+  - RottenFleshSmelting.java added (com.xphearts.feature)
+  - XPHearts.reloadFeatures() added — single entry point for all reload logic
+  - VERSION constant: public static final String VERSION = "1.3.0"
+  - build.gradle.kts version: 1.3.0
+  - plugin.yml version: 1.3.0
+  - jar output: XPHearts-1.3.0.jar
+
+
+--------------------------------------------------------------------------------
+  [1.2.0]
+--------------------------------------------------------------------------------
+
+ADDED
+  - PlaceholderAPI integration (soft-depend, fully optional)
+      %xphearts_multiplier%       player multiplier with label (e.g. "3x")
+      %xphearts_multiplier_raw%   multiplier as plain number   (e.g. "3")
+      %xphearts_hearts%           current max hearts           (e.g. "12.5")
+      %xphearts_extra_hearts%     extra hearts above base      (e.g. "+2.5")
+
+TECHNICAL
+  - XPHeartsExpansion.java added (com.xphearts.integration)
+  - build.gradle.kts: added extendedclip repo + me.clip:placeholderapi:2.11.6
+  - plugin.yml softdepend: [PlaceholderAPI]
+
+
+--------------------------------------------------------------------------------
+  [1.1.0]
+--------------------------------------------------------------------------------
+
+ADDED
+  - Grindstone XP Bottling
+      Place a glass bottle in offhand/inventory, disenchant at a grindstone,
+      click the result to receive a Bottle o' Enchanting instead of XP orbs.
+      Config: grindstone-bottling (enabled, bottles-per-dispatch,
+      require-dispatch-xp).
+
+  - XP Multiplier Charm system
+      Craftable custom item. Hold in offhand while killing mobs to charge it.
+      Right-click when fully charged to consume and gain +1x XP multiplier.
+      Multiplier persists across restarts. Stored in plugins/XPHearts/data.yml.
+      Config: multiplier (enabled, max-multiplier, charge-required,
+      mob-kill-charge, apply-to-mob-xp-only, recipe).
+
+  - /xpmultiplier command
+      /xpmultiplier                  check own multiplier
+      /xpmultiplier set <p> <n>      admin: set a player's multiplier
+      /xpmultiplier reset <p>        admin: reset to 1x
+      Permission: xphearts.admin (default: op)
+
+TECHNICAL
+  - PlayerDataManager.java, CharmManager.java, CharmListener.java added
+  - XPMultiplierCommand.java added
+
+
+--------------------------------------------------------------------------------
+  [1.0.0]
+--------------------------------------------------------------------------------
+
+ADDED
+  - XP Hearts system
+      Players gain extra hearts based on XP level.
+      Default: every 5 levels = +0.5 hearts. Cap: 20 hearts / 40 HP.
+      Health updates on: join, level change, respawn, /xphearts reload.
+  - /xphearts check [player]
+  - /xphearts reload
+  - Configurable: levels-per-half-heart, base-hearts, max-hearts
+
+================================================================================
