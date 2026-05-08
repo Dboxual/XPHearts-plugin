@@ -7,12 +7,13 @@
 --------------------------------------------------------------------------------
 
 BUILD
-  - JAR output filename changed from XPHearts-{version}.jar to XPHearts.jar.
-    Root cause of the .paper-remapped deletion requirement: versioned filenames
-    left old JARs in the plugins folder alongside new ones, causing Paper to
-    detect duplicate plugin names ("XPHearts"). Fixed by using a single
-    canonical filename. Version is tracked in plugin.yml and XPHearts.VERSION.
-    Update workflow is now: stop → overwrite plugins/XPHearts.jar → start.
+  - Build output restructured to versioned release folders.
+    Output: build/releases/VERSION/xphearts-VERSION.jar
+    Example: build/releases/1.3.4/xphearts-1.3.4.jar
+    Each version gets its own folder so releases never stack on top of each
+    other in build/libs. Run `./gradlew clean` to wipe all build output.
+    Update workflow: stop server → remove old xphearts-*.jar from plugins/ →
+    copy build/releases/VERSION/xphearts-VERSION.jar → start server.
 
 --------------------------------------------------------------------------------
   [1.3.4] - 2026-05-08
