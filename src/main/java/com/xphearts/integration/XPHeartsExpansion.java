@@ -15,7 +15,7 @@ public class XPHeartsExpansion extends PlaceholderExpansion {
     }
 
     @Override public @NotNull String getIdentifier() { return "xphearts"; }
-    @Override public @NotNull String getAuthor()     { return "LevelsSMP"; }
+    @Override public @NotNull String getAuthor()     { return "XPHearts"; }
     @Override public @NotNull String getVersion()    { return XPHearts.VERSION; }
     @Override public boolean persist()               { return true; }
 
