@@ -27,6 +27,9 @@ tasks {
         options.release.set(21)
     }
     jar {
-        archiveFileName.set("XPHearts-${version}.jar")
+        // Fixed filename — no version suffix. The version lives in plugin.yml and
+        // XPHearts.VERSION. A consistent filename means the server operator always
+        // replaces one file and Paper never sees two JARs with the same plugin name.
+        archiveFileName.set("XPHearts.jar")
     }
 }
