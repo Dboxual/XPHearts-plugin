@@ -40,8 +40,7 @@ public class GrindstoneBottling implements Listener {
             if (slot0 == null || slot0.getType() == Material.AIR) return;
         }
 
-        ItemStack result = slot0.clone();
-        stripEnchantments(result);
+        ItemStack result = stripEnchantments(slot0.clone());
         event.setResult(result);
     }
 
@@ -111,12 +110,16 @@ public class GrindstoneBottling implements Listener {
         player.updateInventory();
     }
 
-    private void stripEnchantments(ItemStack item) {
+    // Returns the disenchanted item. For enchanted books this is a plain BOOK
+    // (a new ItemStack) rather than an empty ENCHANTED_BOOK.
+    private ItemStack stripEnchantments(ItemStack item) {
         new ArrayList<>(item.getEnchantments().keySet()).forEach(item::removeEnchantment);
         if (item.getItemMeta() instanceof EnchantmentStorageMeta bookMeta) {
             new ArrayList<>(bookMeta.getStoredEnchants().keySet()).forEach(bookMeta::removeStoredEnchant);
             item.setItemMeta(bookMeta);
+            return new ItemStack(Material.BOOK, item.getAmount());
         }
+        return item;
     }
 
     private void decrementGrindstoneSlot(GrindstoneInventory inv, int slot) {
