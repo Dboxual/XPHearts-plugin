@@ -3,6 +3,39 @@
 ================================================================================
 
 --------------------------------------------------------------------------------
+  [1.3.5] - 2026-05-14  [experimental/soulbound-multiplier]
+--------------------------------------------------------------------------------
+
+CHANGED
+  - XP Multiplier Charm replaced with the Soulbound Ledger (WRITABLE_BOOK).
+    New item name: §5§lSoulbound Ledger
+    Lore: "The pages whisper quietly." / "Souls cling to its binding." /
+    "Multiplier: x[charge]/[required]" — updates dynamically as the ledger
+    charges. Fully charged state appends "§6❖ Fully bound! Right-click to
+    consume." and changes the name to include "§6❖ FULLY BOUND".
+
+  - Enchanted glint added to the Soulbound Ledger via UNBREAKING I + HIDE_ENCHANTS
+    flag. Glow is visible; enchant tooltip is suppressed.
+
+  - Existing multiplier items with the charm_id PDC tag ("xp_multiplier_charm")
+    continue to work — identity is PDC-based, not material-based.
+
+  - Notification messages updated to reference "Soulbound Ledger" instead of
+    "XP Multiplier Charm".
+
+UNCHANGED
+  - All multiplier functionality: charging, consume (+0.5x), max cap, PDC tags,
+    /withdraw, token system, crafting recipe ingredients/shape, admin commands.
+
+TECHNICAL
+  - CharmManager: Material.EMERALD → Material.WRITABLE_BOOK; Enchantment.UNBREAKING
+    + ItemFlag.HIDE_ENCHANTS added in createCharm(); display name and lore updated
+    in both createCharm() and setCharge(). Imports: Enchantment, ItemFlag added.
+  - CharmListener: two sendMessage() strings updated to "Soulbound Ledger".
+  - config.yml: multiplier section header updated to "SOULBOUND LEDGER".
+  - VERSION bumped to 1.3.5.
+
+--------------------------------------------------------------------------------
   [build] - 2026-05-08
 --------------------------------------------------------------------------------
 

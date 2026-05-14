@@ -50,7 +50,7 @@ public class CharmListener implements Listener {
         killer.getInventory().setItemInOffHand(offhand);
 
         if (newCharge >= required) {
-            killer.sendMessage("§6❖ §aYour XP Multiplier Charm is fully charged! Right-click to consume.");
+            killer.sendMessage("§6❖ §5Your Soulbound Ledger is fully bound! Right-click to consume.");
         }
     }
 
@@ -104,7 +104,7 @@ public class CharmListener implements Listener {
         player.getInventory().setItemInOffHand(null);
         double newMult = Math.min(current + 0.5, maxMult);
         dataManager.setMultiplier(player.getUniqueId(), newMult);
-        player.sendMessage("§6❖ §aXP Multiplier Charm consumed! Your multiplier is now §e" + fmt(newMult) + "x§a.");
+        player.sendMessage("§6❖ §5Soulbound Ledger consumed! Your multiplier is now §e" + fmt(newMult) + "x§5.");
     }
 
     // Formats 2.0 → "2", 1.5 → "1.5"

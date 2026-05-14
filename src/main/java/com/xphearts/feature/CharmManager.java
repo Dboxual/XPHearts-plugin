@@ -6,6 +6,8 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -42,15 +44,16 @@ public class CharmManager {
 
     public ItemStack createCharm() {
         int required = plugin.getConfig().getInt("multiplier.charge-required", 100);
-        ItemStack item = new ItemStack(Material.EMERALD);
+        ItemStack item = new ItemStack(Material.WRITABLE_BOOK);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(c("§aXP Multiplier Charm"));
+        meta.displayName(c("§5§lSoulbound Ledger"));
         meta.lore(List.of(
-                c("§7Hold in offhand while killing mobs"),
-                c("§7Charge: §e0§7/§e" + required),
-                c("§7When full, right-click to consume"),
-                c("§7and gain §a+0.5x XP multiplier")
+                c("§8The pages whisper quietly."),
+                c("§7Souls cling to its binding."),
+                c("§dMultiplier: §fx0/" + required)
         ));
+        meta.addEnchant(Enchantment.UNBREAKING, 1, true);
+        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         meta.getPersistentDataContainer().set(charmIdKey, PersistentDataType.STRING, CHARM_ID_VALUE);
         meta.getPersistentDataContainer().set(charmChargeKey, PersistentDataType.INTEGER, 0);
         meta.setMaxStackSize(1);
@@ -76,20 +79,19 @@ public class CharmManager {
         ItemMeta meta = item.getItemMeta();
         meta.getPersistentDataContainer().set(charmChargeKey, PersistentDataType.INTEGER, charge);
         if (charge >= required) {
-            meta.displayName(c("§aXP Multiplier Charm §6❖ FULLY CHARGED"));
+            meta.displayName(c("§5§lSoulbound Ledger §6❖ FULLY BOUND"));
             meta.lore(List.of(
-                    c("§7Hold in offhand while killing mobs"),
-                    c("§6❖ Fully charged!"),
-                    c("§eRight-click to consume"),
-                    c("§7and gain §a+0.5x XP multiplier")
+                    c("§8The pages whisper quietly."),
+                    c("§7Souls cling to its binding."),
+                    c("§dMultiplier: §fx" + charge + "/" + required),
+                    c("§6❖ Fully bound! §eRight-click to consume.")
             ));
         } else {
-            meta.displayName(c("§aXP Multiplier Charm"));
+            meta.displayName(c("§5§lSoulbound Ledger"));
             meta.lore(List.of(
-                    c("§7Hold in offhand while killing mobs"),
-                    c("§7Charge: §e" + charge + "§7/§e" + required),
-                    c("§7When full, right-click to consume"),
-                    c("§7and gain §a+0.5x XP multiplier")
+                    c("§8The pages whisper quietly."),
+                    c("§7Souls cling to its binding."),
+                    c("§dMultiplier: §fx" + charge + "/" + required)
             ));
         }
         item.setItemMeta(meta);
