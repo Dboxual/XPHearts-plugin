@@ -47,6 +47,9 @@ public class CharmListener implements Listener {
         int chargePerKill = plugin.getConfig().getInt("multiplier.mob-kill-charge", 1);
         int newCharge     = Math.min(charmManager.getCharge(offhand) + chargePerKill, required);
         charmManager.setCharge(offhand, newCharge);
+        if (charmManager.needsMaterialUpgrade(offhand)) {
+            offhand = charmManager.migrateCharm(offhand);
+        }
         killer.getInventory().setItemInOffHand(offhand);
 
         if (newCharge >= required) {

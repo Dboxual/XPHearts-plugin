@@ -6,7 +6,6 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
@@ -44,7 +43,7 @@ public class CharmManager {
 
     public ItemStack createCharm() {
         int required = plugin.getConfig().getInt("multiplier.charge-required", 100);
-        ItemStack item = new ItemStack(Material.WRITABLE_BOOK);
+        ItemStack item = new ItemStack(Material.ENCHANTED_BOOK);
         ItemMeta meta = item.getItemMeta();
         meta.displayName(c("§5§lSoulbound Ledger"));
         meta.lore(List.of(
@@ -52,7 +51,6 @@ public class CharmManager {
                 c("§7Souls cling to its binding."),
                 c("§dMultiplier: §fx0/" + required)
         ));
-        meta.addEnchant(Enchantment.UNBREAKING, 1, true);
         meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         meta.getPersistentDataContainer().set(charmIdKey, PersistentDataType.STRING, CHARM_ID_VALUE);
         meta.getPersistentDataContainer().set(charmChargeKey, PersistentDataType.INTEGER, 0);
@@ -100,6 +98,25 @@ public class CharmManager {
     public boolean isFullyCharged(ItemStack item) {
         if (!isCharm(item)) return false;
         return getCharge(item) >= plugin.getConfig().getInt("multiplier.charge-required", 100);
+    }
+
+    /** True when a charm item uses a pre-1.3.6 material (EMERALD or WRITABLE_BOOK). */
+    public boolean needsMaterialUpgrade(ItemStack item) {
+        return isCharm(item) && item.getType() != Material.ENCHANTED_BOOK;
+    }
+
+    /** Upgrades a legacy charm (EMERALD / WRITABLE_BOOK) to ENCHANTED_BOOK, preserving charge. */
+    public ItemStack migrateCharm(ItemStack item) {
+        int charge = getCharge(item);
+        ItemStack upgraded = new ItemStack(Material.ENCHANTED_BOOK);
+        ItemMeta meta = upgraded.getItemMeta();
+        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+        meta.getPersistentDataContainer().set(charmIdKey, PersistentDataType.STRING, CHARM_ID_VALUE);
+        meta.getPersistentDataContainer().set(charmChargeKey, PersistentDataType.INTEGER, charge);
+        meta.setMaxStackSize(1);
+        upgraded.setItemMeta(meta);
+        setCharge(upgraded, charge);
+        return upgraded;
     }
 
     // ── Withdraw Token ───────────────────────────────────────────────────────

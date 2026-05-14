@@ -1,4 +1,4 @@
-# XPHearts Configuration v1.3.5
+# XPHearts Configuration v1.3.6
 
 # ─────────────────────────────────────
 # HEARTS
@@ -42,7 +42,7 @@ grindstone-bottling:
 # ─────────────────────────────────────
 # SOULBOUND LEDGER (XP MULTIPLIER)
 # ─────────────────────────────────────
-# Craft a Soulbound Ledger (Book & Quill), hold it in your offhand while
+# Craft a Soulbound Ledger (Enchanted Book), hold it in your offhand while
 # killing mobs to charge it. When fully charged, right-click to consume it
 # and gain +0.5x XP multiplier permanently. Multiplier applies to mob-kill XP.
 

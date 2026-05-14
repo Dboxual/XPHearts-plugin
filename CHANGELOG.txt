@@ -3,6 +3,38 @@
 ================================================================================
 
 --------------------------------------------------------------------------------
+  [1.3.6] - 2026-05-14  [experimental/soulbound-multiplier]
+--------------------------------------------------------------------------------
+
+FIXED
+  - Soulbound Ledger: switched material from WRITABLE_BOOK to ENCHANTED_BOOK.
+    Players could previously open a Book & Quill editor when right-clicking
+    the ledger in the main hand. ENCHANTED_BOOK has no book-open behavior in
+    vanilla and already carries the enchanted glint natively — no extra
+    Enchantment.UNBREAKING needed.
+
+CHANGED
+  - Legacy charm migration: charms created before v1.3.6 (EMERALD or
+    WRITABLE_BOOK) automatically upgrade to ENCHANTED_BOOK the next time
+    they receive a charge tick (mob kill in offhand). Charge value is
+    preserved. Identity remains PDC-based (charm_id = "xp_multiplier_charm"),
+    so all old items continue to function until they are migrated.
+
+TECHNICAL
+  - CharmManager: Material.WRITABLE_BOOK → Material.ENCHANTED_BOOK in
+    createCharm(). Enchantment.UNBREAKING addEnchant() call removed (native
+    glint). HIDE_ENCHANTS flag kept to suppress any stored-enchantment tooltip.
+    Added needsMaterialUpgrade(ItemStack) and migrateCharm(ItemStack) — creates
+    a fresh ENCHANTED_BOOK charm preserving the current charge, PDC tag,
+    HIDE_ENCHANTS flag, and max-stack-size 1.
+    Enchantment import removed.
+  - CharmListener.onMobDeath: after setCharge(), calls needsMaterialUpgrade()
+    and replaces the offhand item via migrateCharm() before setItemInOffHand().
+    No Material import required in CharmListener.
+  - config.yml: section comment updated ("Book & Quill" → "Enchanted Book").
+  - VERSION bumped to 1.3.6.
+
+--------------------------------------------------------------------------------
   [1.3.5] - 2026-05-14  [experimental/soulbound-multiplier]
 --------------------------------------------------------------------------------
 
