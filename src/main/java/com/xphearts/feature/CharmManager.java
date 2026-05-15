@@ -43,7 +43,7 @@ public class CharmManager {
 
     public ItemStack createCharm() {
         int required = plugin.getConfig().getInt("multiplier.charge-required", 100);
-        ItemStack item = new ItemStack(Material.ENCHANTED_BOOK);
+        ItemStack item = new ItemStack(Material.WRITABLE_BOOK);
         ItemMeta meta = item.getItemMeta();
         meta.displayName(c("§5§lSoulbound Ledger"));
         meta.lore(List.of(
@@ -51,7 +51,6 @@ public class CharmManager {
                 c("§7Souls cling to its binding."),
                 c("§dMultiplier: §fx0/" + required)
         ));
-        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         meta.getPersistentDataContainer().set(charmIdKey, PersistentDataType.STRING, CHARM_ID_VALUE);
         meta.getPersistentDataContainer().set(charmChargeKey, PersistentDataType.INTEGER, 0);
         meta.setMaxStackSize(1);
@@ -100,23 +99,28 @@ public class CharmManager {
         return getCharge(item) >= plugin.getConfig().getInt("multiplier.charge-required", 100);
     }
 
-    /** True when a charm item uses a pre-1.3.6 material (EMERALD or WRITABLE_BOOK). */
-    public boolean needsMaterialUpgrade(ItemStack item) {
-        return isCharm(item) && item.getType() != Material.ENCHANTED_BOOK;
-    }
-
-    /** Upgrades a legacy charm (EMERALD / WRITABLE_BOOK) to ENCHANTED_BOOK, preserving charge. */
-    public ItemStack migrateCharm(ItemStack item) {
-        int charge = getCharge(item);
-        ItemStack upgraded = new ItemStack(Material.ENCHANTED_BOOK);
-        ItemMeta meta = upgraded.getItemMeta();
-        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-        meta.getPersistentDataContainer().set(charmIdKey, PersistentDataType.STRING, CHARM_ID_VALUE);
+    /**
+     * Returns a charm with the correct material for its charge state.
+     * Not fully charged → WRITABLE_BOOK; fully charged → ENCHANTED_BOOK.
+     * Rebuilds the ItemStack only when the material must change; same item returned otherwise.
+     * Handles migration of legacy EMERALD charms and v1.3.6 incorrect-material items.
+     */
+    public ItemStack ensureCorrectMaterial(ItemStack item) {
+        if (!isCharm(item)) return item;
+        int charge   = getCharge(item);
+        int required = plugin.getConfig().getInt("multiplier.charge-required", 100);
+        boolean full = charge >= required;
+        Material target = full ? Material.ENCHANTED_BOOK : Material.WRITABLE_BOOK;
+        if (item.getType() == target) return item;
+        ItemStack rebuilt = new ItemStack(target);
+        ItemMeta meta = rebuilt.getItemMeta();
+        if (full) meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+        meta.getPersistentDataContainer().set(charmIdKey,     PersistentDataType.STRING,  CHARM_ID_VALUE);
         meta.getPersistentDataContainer().set(charmChargeKey, PersistentDataType.INTEGER, charge);
         meta.setMaxStackSize(1);
-        upgraded.setItemMeta(meta);
-        setCharge(upgraded, charge);
-        return upgraded;
+        rebuilt.setItemMeta(meta);
+        setCharge(rebuilt, charge);
+        return rebuilt;
     }
 
     // ── Withdraw Token ───────────────────────────────────────────────────────

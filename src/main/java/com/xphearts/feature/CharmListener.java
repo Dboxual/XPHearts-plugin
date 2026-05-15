@@ -47,9 +47,7 @@ public class CharmListener implements Listener {
         int chargePerKill = plugin.getConfig().getInt("multiplier.mob-kill-charge", 1);
         int newCharge     = Math.min(charmManager.getCharge(offhand) + chargePerKill, required);
         charmManager.setCharge(offhand, newCharge);
-        if (charmManager.needsMaterialUpgrade(offhand)) {
-            offhand = charmManager.migrateCharm(offhand);
-        }
+        offhand = charmManager.ensureCorrectMaterial(offhand);
         killer.getInventory().setItemInOffHand(offhand);
 
         if (newCharge >= required) {
@@ -60,12 +58,23 @@ public class CharmListener implements Listener {
     @EventHandler
     public void onRightClick(PlayerInteractEvent event) {
         if (!plugin.getConfig().getBoolean("multiplier.enabled", true)) return;
-        if (event.getHand() != EquipmentSlot.OFF_HAND) return;
 
         Action action = event.getAction();
         if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) return;
 
-        Player player   = event.getPlayer();
+        Player player = event.getPlayer();
+
+        // Block the vanilla book editor when a WRITABLE_BOOK charm is in the main hand
+        if (event.getHand() == EquipmentSlot.HAND) {
+            ItemStack main = player.getInventory().getItemInMainHand();
+            if (charmManager.isCharm(main) && !charmManager.isFullyCharged(main)) {
+                event.setCancelled(true);
+            }
+            return;
+        }
+
+        if (event.getHand() != EquipmentSlot.OFF_HAND) return;
+
         ItemStack offhand = player.getInventory().getItemInOffHand();
 
         // ── Withdraw token ────────────────────────────────────────────────
@@ -93,6 +102,13 @@ public class CharmListener implements Listener {
         // ── Charm ─────────────────────────────────────────────────────────
         if (!charmManager.isCharm(offhand)) return;
         event.setCancelled(true);
+
+        // Correct material to match charge state (migrates wrong-material legacy items on interact)
+        ItemStack corrected = charmManager.ensureCorrectMaterial(offhand);
+        if (corrected != offhand) {
+            player.getInventory().setItemInOffHand(corrected);
+            offhand = corrected;
+        }
 
         if (!charmManager.isFullyCharged(offhand)) return;
 

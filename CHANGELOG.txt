@@ -3,6 +3,50 @@
 ================================================================================
 
 --------------------------------------------------------------------------------
+  [1.3.7] - 2026-05-14  [experimental/soulbound-multiplier]
+--------------------------------------------------------------------------------
+
+CHANGED
+  - Soulbound Ledger now uses two materials depending on charge state:
+      Charging  (0 to max-1 kills) → WRITABLE_BOOK (Book & Quill)
+      Fully charged                → ENCHANTED_BOOK (auto-converted on reaching full charge)
+    The conversion to ENCHANTED_BOOK happens in onMobDeath the moment the
+    final charge is applied, so the player sees the item visually upgrade in
+    their hand. Only the ENCHANTED_BOOK form can be right-clicked to consume.
+
+  - Newly crafted Soulbound Ledgers start as WRITABLE_BOOK (uncharged).
+
+  - Right-click cancel for WRITABLE_BOOK charm: PlayerInteractEvent is cancelled
+    in EquipmentSlot.HAND (main hand) whenever an uncharged charm is detected,
+    preventing the vanilla Book & Quill editor from opening. Offhand right-clicks
+    are already cancelled by the existing charm handler.
+
+MIGRATION
+  - v1.3.6 ENCHANTED_BOOK ledger that is NOT fully charged → reverts to
+    WRITABLE_BOOK on the next mob kill or offhand right-click, preserving charge.
+  - Fully charged ledger (any material) → stays or converts to ENCHANTED_BOOK.
+  - Legacy EMERALD charms → WRITABLE_BOOK if uncharged, ENCHANTED_BOOK if full.
+  - All migration is PDC-based (charm_id = "xp_multiplier_charm"); no material
+    check is used for identity.
+
+FIXED
+  - EquipmentSlot.MAIN_HAND → EquipmentSlot.HAND (Bukkit enum constant name).
+
+TECHNICAL
+  - CharmManager: createCharm() reverted to WRITABLE_BOOK, no ItemFlag on fresh
+    items. needsMaterialUpgrade()/migrateCharm() removed; replaced by single
+    ensureCorrectMaterial(ItemStack) — picks target material by charge vs
+    charge-required, rebuilds only when needed, adds HIDE_ENCHANTS for
+    ENCHANTED_BOOK only.
+  - CharmListener.onMobDeath: ensureCorrectMaterial() called after setCharge()
+    before setItemInOffHand().
+  - CharmListener.onRightClick: reordered to check EquipmentSlot.HAND first;
+    WRITABLE_BOOK charm in main hand → event cancelled, return. Offhand section
+    now calls ensureCorrectMaterial() after isCharm() guard, before the
+    isFullyCharged() consume gate.
+  - VERSION bumped to 1.3.7.
+
+--------------------------------------------------------------------------------
   [1.3.6] - 2026-05-14  [experimental/soulbound-multiplier]
 --------------------------------------------------------------------------------
 
