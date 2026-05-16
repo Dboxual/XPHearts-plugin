@@ -1,5 +1,14 @@
 # XPHearts Changelog
 
+## v1.4.1
+
+- **Charm item is now `WITHER_ROSE`** — replaced `WRITABLE_BOOK` entirely. All book-specific handling removed: no migration logic, no `PlayerEditBookEvent` guard, no signing prevention.
+- Uncharged rose right-clicks are now cancelled (prevents vanilla block-placement of the rose). Previously uncharged clicks were left uncancelled to allow the book UI to open.
+- Enchantment glow remains on both charged and uncharged rose via `setEnchantmentGlintOverride(true)`.
+- Kills charge the rose exactly as before. Fully charged right-click consumes and grants +0.5× multiplier.
+
+---
+
 ## v1.4.0
 
 - **Soul Bound Ledger** — the XP multiplier charm is now a `WRITABLE_BOOK` item called the Soul Bound Ledger. Bold colorful display name, flavour lore, enchantment glow. The book UI may open freely; saving or signing is permanently blocked so the item can never become a `WRITTEN_BOOK` and never loses its custom name, lore, or PDC data.

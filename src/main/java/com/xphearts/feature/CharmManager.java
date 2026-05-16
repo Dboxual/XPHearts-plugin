@@ -42,7 +42,7 @@ public class CharmManager {
 
     public ItemStack createCharm() {
         int required = plugin.getConfig().getInt("multiplier.charge-required", 100);
-        ItemStack item = new ItemStack(Material.WRITABLE_BOOK);
+        ItemStack item = new ItemStack(Material.WITHER_ROSE);
         ItemMeta meta = item.getItemMeta();
         meta.displayName(c("§5§lSoul §d§lBound §b§lLedger"));
         meta.lore(List.of(
@@ -105,24 +105,6 @@ public class CharmManager {
     public boolean isFullyCharged(ItemStack item) {
         if (!isCharm(item)) return false;
         return getCharge(item) >= plugin.getConfig().getInt("multiplier.charge-required", 100);
-    }
-
-    /**
-     * Migrates an old-material charm (e.g. EMERALD) to the WRITABLE_BOOK Soul Bound Ledger,
-     * preserving all PDC data. Returns the original item unchanged if migration is not needed.
-     */
-    public ItemStack migrateToLedger(ItemStack item) {
-        if (item == null || item.getType() == Material.WRITABLE_BOOK) return item;
-        if (!isCharm(item)) return item;
-        int charge = getCharge(item);
-        ItemStack ledger = new ItemStack(Material.WRITABLE_BOOK);
-        ItemMeta meta = ledger.getItemMeta();
-        meta.getPersistentDataContainer().set(charmIdKey,    PersistentDataType.STRING,  CHARM_ID_VALUE);
-        meta.getPersistentDataContainer().set(charmChargeKey, PersistentDataType.INTEGER, charge);
-        meta.setMaxStackSize(1);
-        ledger.setItemMeta(meta);
-        setCharge(ledger, charge); // applies correct name, lore, and glow for the current charge
-        return ledger;
     }
 
     // ── Withdraw Token ───────────────────────────────────────────────────────
