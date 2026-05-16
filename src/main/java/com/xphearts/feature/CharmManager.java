@@ -44,7 +44,7 @@ public class CharmManager {
         int required = plugin.getConfig().getInt("multiplier.charge-required", 100);
         ItemStack item = new ItemStack(Material.WITHER_ROSE);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(c("§5§lSoul §d§lBound §b§lLedger"));
+        meta.displayName(c("§c§lSoul Bound Ledger"));
         meta.lore(List.of(
                 c("§7It clings to its bindings."),
                 c(""),
@@ -79,7 +79,7 @@ public class CharmManager {
         ItemMeta meta = item.getItemMeta();
         meta.getPersistentDataContainer().set(charmChargeKey, PersistentDataType.INTEGER, charge);
         if (charge >= required) {
-            meta.displayName(c("§5§lSoul §d§lBound §b§lLedger §6❖"));
+            meta.displayName(c("§c§lSoul Bound Ledger §6❖"));
             meta.lore(List.of(
                     c("§7It clings to its bindings."),
                     c(""),
@@ -88,7 +88,7 @@ public class CharmManager {
                     c("§7and gain §a+0.5x §7XP multiplier")
             ));
         } else {
-            meta.displayName(c("§5§lSoul §d§lBound §b§lLedger"));
+            meta.displayName(c("§c§lSoul Bound Ledger"));
             meta.lore(List.of(
                     c("§7It clings to its bindings."),
                     c(""),

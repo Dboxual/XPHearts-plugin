@@ -1,5 +1,11 @@
 # XPHearts Changelog
 
+## v1.4.2
+
+- **Soul Bound Ledger name is now all red bold** — changed from tricolor purple/magenta/aqua to solid `§c§l` (bright red bold) on both the uncharged and fully charged states. The gold ❖ on the charged state is unchanged.
+
+---
+
 ## v1.4.1
 
 - **Charm item is now `WITHER_ROSE`** — replaced `WRITABLE_BOOK` entirely. All book-specific handling removed: no migration logic, no `PlayerEditBookEvent` guard, no signing prevention.
