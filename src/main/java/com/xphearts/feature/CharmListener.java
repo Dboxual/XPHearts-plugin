@@ -5,9 +5,11 @@ import com.xphearts.data.PlayerDataManager;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.player.PlayerEditBookEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -30,17 +32,22 @@ public class CharmListener implements Listener {
         Player killer = event.getEntity().getKiller();
         if (killer == null) return;
 
-        // Apply stored XP multiplier to dropped XP (applies to all mob types)
         double multiplier = dataManager.getMultiplier(killer.getUniqueId());
         if (multiplier > 1.0 && event.getDroppedExp() > 0) {
             event.setDroppedExp((int) Math.round(event.getDroppedExp() * multiplier));
         }
 
-        // Charm charging: respect the allow-passive-mobs setting
         boolean allowPassive = plugin.getConfig().getBoolean("multiplier.allow-passive-mobs", false);
         if (!allowPassive && !(event.getEntity() instanceof Monster)) return;
 
         ItemStack offhand = killer.getInventory().getItemInOffHand();
+
+        ItemStack migrated = charmManager.migrateToLedger(offhand);
+        if (migrated != offhand) {
+            offhand = migrated;
+            killer.getInventory().setItemInOffHand(offhand);
+        }
+
         if (!charmManager.isCharm(offhand) || charmManager.isFullyCharged(offhand)) return;
 
         int required      = plugin.getConfig().getInt("multiplier.charge-required", 100);
@@ -50,27 +57,40 @@ public class CharmListener implements Listener {
         killer.getInventory().setItemInOffHand(offhand);
 
         if (newCharge >= required) {
-            killer.sendMessage("§6❖ §aYour XP Multiplier Charm is fully charged! Right-click to consume.");
+            killer.sendMessage("§6❖ §aYour Soul Bound Ledger is fully charged! Right-click to consume.");
         }
     }
 
-    @EventHandler
+    /**
+     * Handles token application and fully-charged ledger consumption (offhand only).
+     * Non-fully-charged ledgers are left uncancelled so the book UI can open freely —
+     * PlayerEditBookEvent is the guard that prevents any text from being saved.
+     */
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onRightClick(PlayerInteractEvent event) {
         if (!plugin.getConfig().getBoolean("multiplier.enabled", true)) return;
-        if (event.getHand() != EquipmentSlot.OFF_HAND) return;
 
         Action action = event.getAction();
         if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) return;
 
-        Player player   = event.getPlayer();
+        EquipmentSlot hand = event.getHand();
+        if (hand == null || hand != EquipmentSlot.OFF_HAND) return;
+
+        Player player = event.getPlayer();
         ItemStack offhand = player.getInventory().getItemInOffHand();
+
+        ItemStack migrated = charmManager.migrateToLedger(offhand);
+        if (migrated != offhand) {
+            offhand = migrated;
+            player.getInventory().setItemInOffHand(offhand);
+        }
 
         // ── Withdraw token ────────────────────────────────────────────────
         if (charmManager.isWithdrawToken(offhand)) {
             event.setCancelled(true);
-            double maxMult    = plugin.getConfig().getDouble("multiplier.max-multiplier", 10.0);
-            double current    = dataManager.getMultiplier(player.getUniqueId());
-            double tokenAmt   = charmManager.getTokenAmount(offhand);
+            double maxMult  = plugin.getConfig().getDouble("multiplier.max-multiplier", 10.0);
+            double current  = dataManager.getMultiplier(player.getUniqueId());
+            double tokenAmt = charmManager.getTokenAmount(offhand);
             if (current >= maxMult) {
                 player.sendMessage("§cYour XP multiplier is already at the maximum (§e" + fmt(maxMult) + "x§c).");
                 return;
@@ -87,14 +107,18 @@ public class CharmListener implements Listener {
             return;
         }
 
-        // ── Charm ─────────────────────────────────────────────────────────
+        // ── Soul Bound Ledger ─────────────────────────────────────────────
         if (!charmManager.isCharm(offhand)) return;
-        event.setCancelled(true);
 
+        // Not fully charged: let the book UI open; PlayerEditBookEvent blocks any saves
         if (!charmManager.isFullyCharged(offhand)) return;
 
-        double maxMult  = plugin.getConfig().getDouble("multiplier.max-multiplier", 10.0);
-        double current  = dataManager.getMultiplier(player.getUniqueId());
+        // Fully charged: cancel and consume — book must not open in the same tick as consume
+        event.setCancelled(true);
+        event.setUseItemInHand(org.bukkit.event.Event.Result.DENY);
+
+        double maxMult = plugin.getConfig().getDouble("multiplier.max-multiplier", 10.0);
+        double current = dataManager.getMultiplier(player.getUniqueId());
 
         if (current >= maxMult) {
             player.sendMessage("§cYour XP multiplier is already at the maximum (§e" + fmt(maxMult) + "x§c).");
@@ -104,7 +128,21 @@ public class CharmListener implements Listener {
         player.getInventory().setItemInOffHand(null);
         double newMult = Math.min(current + 0.5, maxMult);
         dataManager.setMultiplier(player.getUniqueId(), newMult);
-        player.sendMessage("§6❖ §aXP Multiplier Charm consumed! Your multiplier is now §e" + fmt(newMult) + "x§a.");
+        player.sendMessage("§6❖ §aSoul Bound Ledger consumed! Your multiplier is now §e" + fmt(newMult) + "x§a.");
+    }
+
+    /**
+     * Prevents any text edits or signing from saving to the Soul Bound Ledger.
+     * Cancelling this event keeps the item as WRITABLE_BOOK with all original
+     * name, lore, and PDC data intact — it can never become a WRITTEN_BOOK.
+     */
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerEditBook(PlayerEditBookEvent event) {
+        Player player = event.getPlayer();
+        if (charmManager.isCharm(player.getInventory().getItemInMainHand()) ||
+            charmManager.isCharm(player.getInventory().getItemInOffHand())) {
+            event.setCancelled(true);
+        }
     }
 
     // Formats 2.0 → "2", 1.5 → "1.5"

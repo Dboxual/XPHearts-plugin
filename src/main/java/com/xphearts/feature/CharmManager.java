@@ -42,18 +42,21 @@ public class CharmManager {
 
     public ItemStack createCharm() {
         int required = plugin.getConfig().getInt("multiplier.charge-required", 100);
-        ItemStack item = new ItemStack(Material.EMERALD);
+        ItemStack item = new ItemStack(Material.WRITABLE_BOOK);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(c("§aXP Multiplier Charm"));
+        meta.displayName(c("§5§lSoul §d§lBound §b§lLedger"));
         meta.lore(List.of(
+                c("§7It clings to its bindings."),
+                c(""),
                 c("§7Hold in offhand while killing mobs"),
                 c("§7Charge: §e0§7/§e" + required),
                 c("§7When full, right-click to consume"),
-                c("§7and gain §a+0.5x XP multiplier")
+                c("§7and gain §a+0.5x §7XP multiplier")
         ));
-        meta.getPersistentDataContainer().set(charmIdKey, PersistentDataType.STRING, CHARM_ID_VALUE);
+        meta.getPersistentDataContainer().set(charmIdKey,    PersistentDataType.STRING,  CHARM_ID_VALUE);
         meta.getPersistentDataContainer().set(charmChargeKey, PersistentDataType.INTEGER, 0);
         meta.setMaxStackSize(1);
+        meta.setEnchantmentGlintOverride(true);
         item.setItemMeta(meta);
         return item;
     }
@@ -76,28 +79,50 @@ public class CharmManager {
         ItemMeta meta = item.getItemMeta();
         meta.getPersistentDataContainer().set(charmChargeKey, PersistentDataType.INTEGER, charge);
         if (charge >= required) {
-            meta.displayName(c("§aXP Multiplier Charm §6❖ FULLY CHARGED"));
+            meta.displayName(c("§5§lSoul §d§lBound §b§lLedger §6❖"));
             meta.lore(List.of(
-                    c("§7Hold in offhand while killing mobs"),
-                    c("§6❖ Fully charged!"),
+                    c("§7It clings to its bindings."),
+                    c(""),
+                    c("§6❖ §eFully charged!"),
                     c("§eRight-click to consume"),
-                    c("§7and gain §a+0.5x XP multiplier")
+                    c("§7and gain §a+0.5x §7XP multiplier")
             ));
         } else {
-            meta.displayName(c("§aXP Multiplier Charm"));
+            meta.displayName(c("§5§lSoul §d§lBound §b§lLedger"));
             meta.lore(List.of(
+                    c("§7It clings to its bindings."),
+                    c(""),
                     c("§7Hold in offhand while killing mobs"),
                     c("§7Charge: §e" + charge + "§7/§e" + required),
                     c("§7When full, right-click to consume"),
-                    c("§7and gain §a+0.5x XP multiplier")
+                    c("§7and gain §a+0.5x §7XP multiplier")
             ));
         }
+        meta.setEnchantmentGlintOverride(true);
         item.setItemMeta(meta);
     }
 
     public boolean isFullyCharged(ItemStack item) {
         if (!isCharm(item)) return false;
         return getCharge(item) >= plugin.getConfig().getInt("multiplier.charge-required", 100);
+    }
+
+    /**
+     * Migrates an old-material charm (e.g. EMERALD) to the WRITABLE_BOOK Soul Bound Ledger,
+     * preserving all PDC data. Returns the original item unchanged if migration is not needed.
+     */
+    public ItemStack migrateToLedger(ItemStack item) {
+        if (item == null || item.getType() == Material.WRITABLE_BOOK) return item;
+        if (!isCharm(item)) return item;
+        int charge = getCharge(item);
+        ItemStack ledger = new ItemStack(Material.WRITABLE_BOOK);
+        ItemMeta meta = ledger.getItemMeta();
+        meta.getPersistentDataContainer().set(charmIdKey,    PersistentDataType.STRING,  CHARM_ID_VALUE);
+        meta.getPersistentDataContainer().set(charmChargeKey, PersistentDataType.INTEGER, charge);
+        meta.setMaxStackSize(1);
+        ledger.setItemMeta(meta);
+        setCharge(ledger, charge); // applies correct name, lore, and glow for the current charge
+        return ledger;
     }
 
     // ── Withdraw Token ───────────────────────────────────────────────────────
