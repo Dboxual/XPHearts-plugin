@@ -12,7 +12,7 @@ Built for a private SMP. No external plugin dependencies required.
 |---|---|
 | **XP Hearts** | Extra hearts scale with XP level. Every 5 levels = +½ heart by default. Fully configurable. |
 | **Grindstone XP Bottling** | Place an enchanted item in the top grindstone slot and a Glass Bottle in the bottom slot, then click the result to receive the disenchanted item plus a Bottle o' Enchanting. Shift-click a bottle into an open grindstone to auto-fill the bottom slot. |
-| **XP Multiplier Charm** | Craft a charm, charge it by killing hostile mobs, consume it to permanently gain +0.5× XP from kills. Stacks up to 10×. Use `/withdraw` to extract 1.0× as a tradeable token. |
+| **Soul Bound Ledger** | Craft a Book and Quill charm, charge it by killing hostile mobs, then right-click (offhand) to consume it and permanently gain +0.5× XP from kills. Stacks up to 10×. Use `/withdraw` to extract multiplier as a tradeable NETHER_STAR token. |
 | **Rotten Flesh Smelting** | Smelt Rotten Flesh → Leather in any furnace, blast furnace, or smoker. |
 
 ---
@@ -91,7 +91,7 @@ Optional. Install [PlaceholderAPI](https://www.spigotmc.org/resources/placeholde
 
 ---
 
-## XP Multiplier Charm Usage
+## Soul Bound Ledger Usage
 
 **Crafting (default recipe):**
 ```
@@ -102,20 +102,19 @@ Optional. Install [PlaceholderAPI](https://www.spigotmc.org/resources/placeholde
 Recipe is configurable in `config.yml` under `multiplier.recipe`.
 
 **Using:**
-1. Hold the charm in your **offhand**.
-2. Kill mobs to charge it (lore shows progress live).
-3. When fully charged, **right-click** to consume it and gain +1× XP permanently.
+1. Hold the Soul Bound Ledger in your **offhand**.
+2. Kill hostile mobs to charge it — the lore shows progress live.
+3. When fully charged, **right-click** to consume it and permanently gain +0.5× XP multiplier.
+
+The book UI may open while it's in your hand — that's fine. Any text you type will not be saved. The item can never be signed or converted into a written book.
 
 ---
 
 ## Building
 
-```
-./gradlew build          # Mac / Linux
-gradlew.bat build        # Windows
-```
+Gradle is not used for builds (incompatible with Java 25). See `CLAUDE.md` for the full manual javac build command.
 
-Output: `build/libs/XPHearts-1.3.0.jar`
+Output: `build/releases/{version}/xphearts-{version}.jar`
 
 Requires JDK 21.
 
@@ -123,7 +122,7 @@ Requires JDK 21.
 
 ## Installing
 
-1. Drop `XPHearts-1.3.0.jar` into your server's `plugins/` folder.
+1. Drop `xphearts-1.4.0.jar` into your server's `plugins/` folder.
 2. Restart the server.
 3. Edit `plugins/XPHearts/config.yml`.
 4. Run `/xphearts reload` to apply changes without restarting.
@@ -142,4 +141,4 @@ Requires JDK 21.
 
 ## Changelog
 
-See [CHANGELOG.txt](CHANGELOG.txt) for full version history.
+See [CHANGELOG.md](CHANGELOG.md) for full version history.
