@@ -39,22 +39,33 @@ public class CharmListener implements Listener {
         boolean allowPassive = plugin.getConfig().getBoolean("multiplier.allow-passive-mobs", false);
         if (!allowPassive && !(event.getEntity() instanceof Monster)) return;
 
-        ItemStack offhand = killer.getInventory().getItemInOffHand();
+        ItemStack offhand  = killer.getInventory().getItemInOffHand();
+        ItemStack mainhand = killer.getInventory().getItemInMainHand();
 
-        if (!charmManager.isCharm(offhand) || charmManager.isFullyCharged(offhand)) return;
+        ItemStack charm;
+        EquipmentSlot charmSlot;
+        if (charmManager.isCharm(offhand)) {
+            charm = offhand; charmSlot = EquipmentSlot.OFF_HAND;
+        } else if (charmManager.isCharm(mainhand)) {
+            charm = mainhand; charmSlot = EquipmentSlot.HAND;
+        } else {
+            return;
+        }
+
+        if (charmManager.isFullyCharged(charm)) return;
 
         int required      = plugin.getConfig().getInt("multiplier.charge-required", 100);
         int chargePerKill = plugin.getConfig().getInt("multiplier.mob-kill-charge", 1);
-        int newCharge     = Math.min(charmManager.getCharge(offhand) + chargePerKill, required);
-        charmManager.setCharge(offhand, newCharge);
-        killer.getInventory().setItemInOffHand(offhand);
+        int newCharge     = Math.min(charmManager.getCharge(charm) + chargePerKill, required);
+        charmManager.setCharge(charm, newCharge);
+        setHandItem(killer, charmSlot, charm);
 
         if (newCharge >= required) {
             killer.sendMessage("§6❖ §aYour Soul Bound Ledger is fully charged! Right-click to consume.");
         }
     }
 
-    /** Handles token application and fully-charged rose consumption (offhand only). */
+    /** Handles token application and fully-charged ledger consumption (either hand). */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onRightClick(PlayerInteractEvent event) {
         if (!plugin.getConfig().getBoolean("multiplier.enabled", true)) return;
@@ -63,41 +74,43 @@ public class CharmListener implements Listener {
         if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) return;
 
         EquipmentSlot hand = event.getHand();
-        if (hand == null || hand != EquipmentSlot.OFF_HAND) return;
+        if (hand == null) return;
 
         Player player = event.getPlayer();
-        ItemStack offhand = player.getInventory().getItemInOffHand();
+        ItemStack heldItem = (hand == EquipmentSlot.HAND)
+                ? player.getInventory().getItemInMainHand()
+                : player.getInventory().getItemInOffHand();
 
         // ── Withdraw token ────────────────────────────────────────────────
-        if (charmManager.isWithdrawToken(offhand)) {
+        if (charmManager.isWithdrawToken(heldItem)) {
             event.setCancelled(true);
             double maxMult  = plugin.getConfig().getDouble("multiplier.max-multiplier", 10.0);
             double current  = dataManager.getMultiplier(player.getUniqueId());
-            double tokenAmt = charmManager.getTokenAmount(offhand);
+            double tokenAmt = charmManager.getTokenAmount(heldItem);
             if (current >= maxMult) {
                 player.sendMessage("§cYour XP multiplier is already at the maximum (§e" + fmt(maxMult) + "x§c).");
                 return;
             }
             double newMult = Math.min(current + tokenAmt, maxMult);
             dataManager.setMultiplier(player.getUniqueId(), newMult);
-            if (offhand.getAmount() > 1) {
-                offhand.setAmount(offhand.getAmount() - 1);
-                player.getInventory().setItemInOffHand(offhand);
+            if (heldItem.getAmount() > 1) {
+                heldItem.setAmount(heldItem.getAmount() - 1);
+                setHandItem(player, hand, heldItem);
             } else {
-                player.getInventory().setItemInOffHand(null);
+                setHandItem(player, hand, null);
             }
             player.sendMessage("§6❖ §b+" + fmt(tokenAmt) + "x Multiplier Token applied! Your multiplier is now §e" + fmt(newMult) + "x§b.");
             return;
         }
 
         // ── Soul Bound Ledger ─────────────────────────────────────────────
-        if (!charmManager.isCharm(offhand)) return;
+        if (!charmManager.isCharm(heldItem)) return;
 
         // Always cancel: prevents vanilla WITHER_ROSE block-placement
         event.setCancelled(true);
 
         // Not fully charged: do nothing
-        if (!charmManager.isFullyCharged(offhand)) return;
+        if (!charmManager.isFullyCharged(heldItem)) return;
 
         double maxMult = plugin.getConfig().getDouble("multiplier.max-multiplier", 10.0);
         double current = dataManager.getMultiplier(player.getUniqueId());
@@ -107,10 +120,18 @@ public class CharmListener implements Listener {
             return;
         }
 
-        player.getInventory().setItemInOffHand(null);
+        setHandItem(player, hand, null);
         double newMult = Math.min(current + 0.5, maxMult);
         dataManager.setMultiplier(player.getUniqueId(), newMult);
         player.sendMessage("§6❖ §aSoul Bound Ledger consumed! Your multiplier is now §e" + fmt(newMult) + "x§a.");
+    }
+
+    private void setHandItem(Player player, EquipmentSlot hand, ItemStack item) {
+        if (hand == EquipmentSlot.HAND) {
+            player.getInventory().setItemInMainHand(item);
+        } else {
+            player.getInventory().setItemInOffHand(item);
+        }
     }
 
     // Formats 2.0 → "2", 1.5 → "1.5"

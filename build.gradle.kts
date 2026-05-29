@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "com.xphearts"
-version = "1.4.2"
+version = "1.4.4"
 description = "XPHearts - Extra hearts, grindstone XP bottling, XP multiplier charms, and rotten flesh smelting"
 
 repositories {
