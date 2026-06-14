@@ -5,6 +5,15 @@ gradle/
 gradlew
 gradlew.bat
 
+# Claude Code local project settings (machine-specific)
+.claude/
+
+# Build output dirs
+bin/
+out/
+target/
+cache/
+
 # IDE
 .idea/
 *.iml
