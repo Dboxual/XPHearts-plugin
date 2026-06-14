@@ -1,0 +1,7 @@
+
+---
+[2026-06-14] BRANCH CLEANUP
+- Merged: dev → main (fast-forward, 1 commit)
+- Final main commit: c5d255be47bacb8e0f60afcc24494be060920ba6
+- Dev deleted: YES (local and remote)
+- Notes: Stale CHANGELOG.md and CLAUDE.md removed. Remote experimental/soulbound-multiplier branch left intact — not touched.
